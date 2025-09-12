@@ -61,12 +61,12 @@
         <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
           <span class="muted" style="font-size:13px">Provider</span>
           <select id="providerSelect" class="search-input" style="max-width:220px; padding:8px 10px; height:auto">
-            <option value="">Auto (Polygon → IEX → Alpha Vantage → Twelve Data → Finnhub → Yahoo)</option>
+            <option value="">Auto (Finnhub → Polygon → IEX → Alpha Vantage → Twelve Data → Yahoo)</option>
+            <option value="finnhub">Finnhub (Real-time) [PRIMARY]</option>
             <option value="polygon">Polygon (Real-time)</option>
             <option value="iex">IEX Cloud (Real-time)</option>
             <option value="alpha_vantage">Alpha Vantage (Real-time)</option>
             <option value="twelve_data">Twelve Data (Real-time)</option>
-            <option value="finnhub">Finnhub (Real-time)</option>
             <option value="yahoo">Yahoo (Delayed)</option>
           </select>
         </div>
@@ -119,6 +119,14 @@
           </div>
           <button id="testProvidersBtn" class="btn" style="margin-top:10px; padding:8px 12px; font-size:12px;">Test All Providers</button>
                     </div>
+        <div class="card">
+          <div class="title">Data Source</div>
+          <div class="notice">
+            <strong>Primary:</strong> <a href="https://finnhub.io/" target="_blank" style="color:#5b7bd5;">Finnhub.io</a> (Real-time)<br>
+            <strong>Free API Key:</strong> Sign up at finnhub.io for real-time data<br>
+            <strong>Set:</strong> <code>FINNHUB_API_KEY=your_key</code> in environment
+          </div>
+        </div>
         <div class="card">
           <div class="title">Important Notice</div>
           <div class="notice">This tool uses public market data for educational purposes and is not financial advice.</div>
@@ -699,7 +707,7 @@
     }
 
     async function fetchAllProviders(symbol) {
-      const providers = ['polygon', 'iex', 'alpha_vantage', 'twelve_data', 'finnhub', 'yahoo'];
+      const providers = ['finnhub', 'polygon', 'iex', 'alpha_vantage', 'twelve_data', 'yahoo'];
       const results = {};
       
       for (const provider of providers) {

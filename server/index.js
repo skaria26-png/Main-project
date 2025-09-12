@@ -182,7 +182,7 @@ async function twelveDataQuote(symbol) {
 }
 
 async function tryProvidersQuote(symbol, preferred) {
-  const order = ['polygon','iex','alpha_vantage','twelve_data','finnhub','yahoo'];
+  const order = ['finnhub','polygon','iex','alpha_vantage','twelve_data','yahoo'];
   if (preferred && order.includes(preferred)) {
     order.splice(order.indexOf(preferred),1);
     order.unshift(preferred);
@@ -190,11 +190,11 @@ async function tryProvidersQuote(symbol, preferred) {
   
   for (const p of order) {
     try {
+      if (p === 'finnhub') return await finnhubQuote(symbol);
       if (p === 'polygon') return await polygonQuote(symbol);
       if (p === 'iex') return await iexQuote(symbol);
       if (p === 'alpha_vantage') return await alphaVantageQuote(symbol);
       if (p === 'twelve_data') return await twelveDataQuote(symbol);
-      if (p === 'finnhub') return await finnhubQuote(symbol);
       if (p === 'yahoo') return await yahooQuote(symbol);
     } catch (e) {
       console.log(`Provider ${p} failed for ${symbol}:`, e.message);
@@ -243,15 +243,15 @@ async function yahooHistory(symbol, range) {
 }
 
 async function tryProvidersHistory(symbol, range, preferred) {
-  const order = ['polygon','finnhub','yahoo'];
+  const order = ['finnhub','polygon','yahoo'];
   if (preferred && order.includes(preferred)) {
     order.splice(order.indexOf(preferred),1);
     order.unshift(preferred);
   }
   for (const p of order) {
     try {
-      if (p === 'polygon') return await polygonHistory(symbol);
       if (p === 'finnhub') return await finnhubHistory(symbol);
+      if (p === 'polygon') return await polygonHistory(symbol);
       if (p === 'yahoo') return await yahooHistory(symbol, range);
     } catch {}
   }
@@ -289,10 +289,10 @@ app.use(express.static(process.cwd()));
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
   console.log('Professional data sources available:');
+  console.log('- Finnhub (real-time) [PRIMARY]:', FINNHUB_KEY ? '✓' : '✗');
   console.log('- Polygon (real-time):', POLYGON_KEY ? '✓' : '✗');
   console.log('- IEX Cloud (real-time):', IEX_TOKEN ? '✓' : '✗');
   console.log('- Alpha Vantage (real-time):', ALPHA_VANTAGE_KEY ? '✓' : '✗');
   console.log('- Twelve Data (real-time):', TWELVE_DATA_KEY ? '✓' : '✗');
-  console.log('- Finnhub (real-time):', FINNHUB_KEY ? '✓' : '✗');
   console.log('- Yahoo (delayed): ✓');
 });

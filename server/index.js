@@ -11,6 +11,8 @@ const PORT = process.env.PORT || 3000;
 const POLYGON_KEY = process.env.POLYGON_API_KEY || '';
 const FINNHUB_KEY = process.env.FINNHUB_API_KEY || '';
 const IEX_TOKEN = process.env.IEX_CLOUD_TOKEN || '';
+const ALPHA_VANTAGE_KEY = process.env.ALPHA_VANTAGE_KEY || '';
+const TWELVE_DATA_KEY = process.env.TWELVE_DATA_KEY || '';
 
 function ok(x) { return x && (x.status === 200 || x.ok); }
 
@@ -122,19 +124,81 @@ async function yahooQuote(symbol) {
   };
 }
 
+async function alphaVantageQuote(symbol) {
+  if (!ALPHA_VANTAGE_KEY) throw new Error('no alpha vantage');
+  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(symbol)}&apikey=${ALPHA_VANTAGE_KEY}`;
+  const res = await fetch(url);
+  if (!ok(res)) throw new Error('alpha vantage bad');
+  const data = await res.json();
+  const q = data['Global Quote'];
+  if (!q || !q['05. price']) throw new Error('alpha vantage empty');
+  
+  return {
+    provider: 'alpha_vantage',
+    symbol: q['01. symbol'],
+    name: symbol,
+    price: parseFloat(q['05. price']),
+    change: parseFloat(q['09. change']),
+    changePercent: parseFloat(q['10. change percent'].replace('%', '')),
+    volume: parseInt(q['06. volume']),
+    marketCap: null,
+    pe: null,
+    previousClose: parseFloat(q['08. previous close']),
+    dayHigh: parseFloat(q['03. high']),
+    dayLow: parseFloat(q['04. low']),
+    currency: 'USD',
+    exchangeName: '—',
+    dataQuality: 'real-time',
+    lastUpdate: new Date().toISOString()
+  };
+}
+
+async function twelveDataQuote(symbol) {
+  if (!TWELVE_DATA_KEY) throw new Error('no twelve data');
+  const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbol)}&apikey=${TWELVE_DATA_KEY}`;
+  const res = await fetch(url);
+  if (!ok(res)) throw new Error('twelve data bad');
+  const q = await res.json();
+  if (!q || !q.price) throw new Error('twelve data empty');
+  
+  return {
+    provider: 'twelve_data',
+    symbol: q.symbol,
+    name: q.name || symbol,
+    price: parseFloat(q.price),
+    change: parseFloat(q.change),
+    changePercent: parseFloat(q.percent_change),
+    volume: parseInt(q.volume) || null,
+    marketCap: q.market_cap ? parseFloat(q.market_cap) : null,
+    pe: q.pe ? parseFloat(q.pe) : null,
+    previousClose: q.close ? parseFloat(q.close) : null,
+    dayHigh: q.high ? parseFloat(q.high) : null,
+    dayLow: q.low ? parseFloat(q.low) : null,
+    currency: 'USD',
+    exchangeName: q.exchange || '—',
+    dataQuality: 'real-time',
+    lastUpdate: new Date().toISOString()
+  };
+}
+
 async function tryProvidersQuote(symbol, preferred) {
-  const order = ['polygon','iex','finnhub','yahoo'];
+  const order = ['polygon','iex','alpha_vantage','twelve_data','finnhub','yahoo'];
   if (preferred && order.includes(preferred)) {
     order.splice(order.indexOf(preferred),1);
     order.unshift(preferred);
   }
+  
   for (const p of order) {
     try {
       if (p === 'polygon') return await polygonQuote(symbol);
       if (p === 'iex') return await iexQuote(symbol);
+      if (p === 'alpha_vantage') return await alphaVantageQuote(symbol);
+      if (p === 'twelve_data') return await twelveDataQuote(symbol);
       if (p === 'finnhub') return await finnhubQuote(symbol);
       if (p === 'yahoo') return await yahooQuote(symbol);
-    } catch {}
+    } catch (e) {
+      console.log(`Provider ${p} failed for ${symbol}:`, e.message);
+    }
   }
   throw new Error('All providers failed');
 }
@@ -224,4 +288,11 @@ app.use(express.static(process.cwd()));
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
+  console.log('Professional data sources available:');
+  console.log('- Polygon (real-time):', POLYGON_KEY ? '✓' : '✗');
+  console.log('- IEX Cloud (real-time):', IEX_TOKEN ? '✓' : '✗');
+  console.log('- Alpha Vantage (real-time):', ALPHA_VANTAGE_KEY ? '✓' : '✗');
+  console.log('- Twelve Data (real-time):', TWELVE_DATA_KEY ? '✓' : '✗');
+  console.log('- Finnhub (real-time):', FINNHUB_KEY ? '✓' : '✗');
+  console.log('- Yahoo (delayed): ✓');
 });

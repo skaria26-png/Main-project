@@ -61,11 +61,13 @@
         <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
           <span class="muted" style="font-size:13px">Provider</span>
           <select id="providerSelect" class="search-input" style="max-width:220px; padding:8px 10px; height:auto">
-            <option value="">Auto (Polygon → IEX → Finnhub → Yahoo)</option>
-            <option value="polygon">Polygon</option>
-            <option value="iex">IEX Cloud</option>
-            <option value="finnhub">Finnhub</option>
-            <option value="yahoo">Yahoo</option>
+            <option value="">Auto (Polygon → IEX → Alpha Vantage → Twelve Data → Finnhub → Yahoo)</option>
+            <option value="polygon">Polygon (Real-time)</option>
+            <option value="iex">IEX Cloud (Real-time)</option>
+            <option value="alpha_vantage">Alpha Vantage (Real-time)</option>
+            <option value="twelve_data">Twelve Data (Real-time)</option>
+            <option value="finnhub">Finnhub (Real-time)</option>
+            <option value="yahoo">Yahoo (Delayed)</option>
           </select>
         </div>
 
@@ -442,42 +444,194 @@
       return Math.sqrt(varc);
     }
 
+    // Professional technical indicators used by institutional traders
+    function calculateBollingerBands(prices, period = 20, stdDev = 2) {
+      if (prices.length < period) return { upper: 0, middle: 0, lower: 0 };
+      const sma = calculateSMA(prices, period);
+      const slice = prices.slice(-period);
+      const variance = slice.reduce((acc, price) => acc + Math.pow(price - sma, 2), 0) / period;
+      const std = Math.sqrt(variance);
+      return {
+        upper: sma + (stdDev * std),
+        middle: sma,
+        lower: sma - (stdDev * std)
+      };
+    }
+
+    function calculateStochastic(prices, kPeriod = 14, dPeriod = 3) {
+      if (prices.length < kPeriod) return { k: 50, d: 50 };
+      const slice = prices.slice(-kPeriod);
+      const high = Math.max(...slice);
+      const low = Math.min(...slice);
+      const current = prices[prices.length - 1];
+      const k = ((current - low) / (high - low)) * 100;
+      
+      // Simple D calculation (3-period SMA of K)
+      const kValues = [];
+      for (let i = kPeriod - 1; i < prices.length; i++) {
+        const periodSlice = prices.slice(i - kPeriod + 1, i + 1);
+        const periodHigh = Math.max(...periodSlice);
+        const periodLow = Math.min(...periodSlice);
+        const periodK = ((prices[i] - periodLow) / (periodHigh - periodLow)) * 100;
+        kValues.push(periodK);
+      }
+      const d = calculateSMA(kValues, dPeriod);
+      return { k, d };
+    }
+
+    function calculateWilliamsR(prices, period = 14) {
+      if (prices.length < period) return 0;
+      const slice = prices.slice(-period);
+      const high = Math.max(...slice);
+      const low = Math.min(...slice);
+      const current = prices[prices.length - 1];
+      return ((high - current) / (high - low)) * -100;
+    }
+
+    function calculateATR(prices, period = 14) {
+      if (prices.length < period + 1) return 0;
+      const trueRanges = [];
+      for (let i = 1; i < prices.length; i++) {
+        const high = prices[i];
+        const low = prices[i - 1];
+        const prevClose = prices[i - 1];
+        const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+        trueRanges.push(tr);
+      }
+      return calculateSMA(trueRanges.slice(-period), period);
+    }
+
     function generatePrediction(quote, history) {
       const prices = history.map(d => d.price);
       const rsi = calculateRSI(prices);
       const macd = calculateMACD(prices);
-      const sma20 = calculateSMA(prices, 30);
-      const sma50 = calculateSMA(prices, 60);
+      const sma20 = calculateSMA(prices, 20);
+      const sma50 = calculateSMA(prices, 50);
       const sma5 = calculateSMA(prices, 5);
       const sma10 = calculateSMA(prices, 10);
       const current = prices[prices.length - 1];
 
+      // Professional indicators
+      const bb = calculateBollingerBands(prices);
+      const stoch = calculateStochastic(prices);
+      const williamsR = calculateWilliamsR(prices);
+      const atr = calculateATR(prices);
+
       let bull = 0, bear = 0;
-      if (rsi < 30) bull += 2; else if (rsi > 70) bear += 2; else if (rsi > 50) bull += 1; else bear += 1;
+
+      // RSI Analysis (Professional levels)
+      if (rsi < 25) bull += 3; // Oversold
+      else if (rsi > 75) bear += 3; // Overbought
+      else if (rsi < 40) bull += 1; // Weak oversold
+      else if (rsi > 60) bear += 1; // Weak overbought
+      else if (rsi > 50) bull += 0.5; // Slight bullish
+      else bear += 0.5; // Slight bearish
+
+      // MACD Analysis
       if (macd.macd > macd.signal) bull += 1; else bear += 1;
-      if (current > sma20 && sma20 > sma50) bull += 2; else if (current < sma20 && sma20 < sma50) bear += 2;
+      if (macd.histogram > 0) bull += 0.5; else bear += 0.5;
+
+      // Moving Average Analysis (Professional)
+      if (current > sma20 && sma20 > sma50) bull += 2; // Uptrend
+      else if (current < sma20 && sma20 < sma50) bear += 2; // Downtrend
+      else if (current > sma20) bull += 1; // Above short-term MA
+      else bear += 1; // Below short-term MA
+
+      // Short-term momentum
       if (sma5 > sma10) bull += 1; else bear += 1;
 
+      // Bollinger Bands Analysis
+      if (current < bb.lower) bull += 2; // Oversold bounce
+      else if (current > bb.upper) bear += 2; // Overbought rejection
+      else if (current > bb.middle) bull += 0.5; // Above middle
+      else bear += 0.5; // Below middle
+
+      // Stochastic Analysis
+      if (stoch.k < 20 && stoch.d < 20) bull += 1; // Oversold
+      else if (stoch.k > 80 && stoch.d > 80) bear += 1; // Overbought
+      else if (stoch.k > stoch.d) bull += 0.5; // K above D
+      else bear += 0.5; // K below D
+
+      // Williams %R Analysis
+      if (williamsR < -80) bull += 1; // Oversold
+      else if (williamsR > -20) bear += 1; // Overbought
+
+      // Volume Analysis (Professional)
       if (quote.volume) {
-        const vr = quote.volume / 30_000_000;
-        if (vr > 1.5) { if (current > prices[prices.length-2]) bull += 1; else bear += 1; }
+        const avgVolume = 30_000_000; // Average volume assumption
+        const volumeRatio = quote.volume / avgVolume;
+        if (volumeRatio > 2) { // High volume
+          if (current > prices[prices.length-2]) bull += 1.5; // Volume confirmation
+          else bear += 1.5;
+        } else if (volumeRatio > 1.5) {
+          if (current > prices[prices.length-2]) bull += 0.5;
+          else bear += 0.5;
+        }
       }
 
-      if (prices.length >= 6) {
-        const ch = (current - prices[prices.length-6]) / prices[prices.length-6];
-        if (ch > 0.05) bull += 1; else if (ch < -0.05) bear += 1;
+      // Price Momentum (Professional)
+      if (prices.length >= 10) {
+        const shortMomentum = (current - prices[prices.length-5]) / prices[prices.length-5];
+        const longMomentum = (current - prices[prices.length-10]) / prices[prices.length-10];
+        
+        if (shortMomentum > 0.03) bull += 1; // Strong short-term momentum
+        else if (shortMomentum < -0.03) bear += 1;
+        
+        if (longMomentum > 0.05) bull += 1; // Strong long-term momentum
+        else if (longMomentum < -0.05) bear += 1;
       }
 
+      // Volatility Analysis (Professional)
       const vol = calculateVolatility(prices);
-      if (vol > 0.03) { bull *= 0.9; bear *= 0.9; }
+      if (vol > 0.05) { // High volatility - reduce confidence
+        bull *= 0.8;
+        bear *= 0.8;
+      } else if (vol < 0.01) { // Low volatility - normal confidence
+        bull *= 1.1;
+        bear *= 1.1;
+      }
 
-      if (quote.pe) { if (quote.pe < 20) bull += 1; else if (quote.pe > 40) bear += 1; }
+      // ATR Analysis
+      if (atr > 0) {
+        const atrRatio = atr / current;
+        if (atrRatio > 0.03) { // High volatility
+          bull *= 0.9;
+          bear *= 0.9;
+        }
+      }
+
+      // Fundamental Analysis (Professional)
+      if (quote.pe) {
+        if (quote.pe < 15) bull += 1; // Undervalued
+        else if (quote.pe > 30) bear += 1; // Overvalued
+        else if (quote.pe < 25) bull += 0.5; // Reasonable valuation
+        else bear += 0.5; // Expensive
+      }
+
+      // Market Cap Analysis
+      if (quote.marketCap) {
+        if (quote.marketCap > 1e12) { // Large cap - more stable
+          bull *= 1.1;
+          bear *= 1.1;
+        } else if (quote.marketCap < 1e9) { // Small cap - more volatile
+          bull *= 0.9;
+          bear *= 0.9;
+        }
+      }
 
       const total = bull + bear;
       const ratio = total > 0 ? bull / total : 0.5;
       const direction = ratio > 0.5 ? 'bullish' : 'bearish';
-      const confidence = Math.round(Math.min(Math.abs(ratio - 0.5) * 2, 0.9) * 100);
-      return { direction, confidence, bullishRatio: ratio };
+      const confidence = Math.round(Math.min(Math.abs(ratio - 0.5) * 2, 0.95) * 100);
+      
+      return { 
+        direction, 
+        confidence, 
+        bullishRatio: ratio,
+        indicators: {
+          rsi, macd, sma20, sma50, bb, stoch, williamsR, atr, volatility: vol
+        }
+      };
     }
 
     function generatePredictionPath(quote, history) {
@@ -543,12 +697,14 @@
       const asOf = quote.asOfISO ? new Date(quote.asOfISO) : new Date();
       const delayedBadge = quote.isDelayed ? ' (Delayed)' : '';
       const session = quote.session || 'REGULAR';
+      const dataQuality = quote.dataQuality || 'unknown';
+      const qualityBadge = dataQuality === 'real-time' ? ' 🟢' : dataQuality === 'delayed' ? ' 🟡' : ' ⚪';
       info.innerHTML = `
         <div class="info"><div class="label">Symbol</div><div class="value">${quote.symbol} (${quote.exchangeName})</div></div>
         <div class="info"><div class="label">Company</div><div class="value">${quote.name}</div></div>
         <div class="info"><div class="label">Currency</div><div class="value">${quote.currency || 'USD'}</div></div>
         <div class="info"><div class="label">Session</div><div class="value">${session}</div></div>
-        <div class="info"><div class="label">Data Source</div><div class="value">${source || 'YAHOO'}${delayedBadge}</div></div>
+        <div class="info"><div class="label">Data Source</div><div class="value">${source || 'YAHOO'}${delayedBadge}${qualityBadge}</div></div>
         <div class="info"><div class="label">As of</div><div class="value">${asOf.toLocaleString()}</div></div>
       `;
     }

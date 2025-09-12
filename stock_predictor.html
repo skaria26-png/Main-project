@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stock Price Predictor</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Price Predictor</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
+    <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; background: linear-gradient(135deg, #e6ebf4, #cfd8e6); min-height: 100vh; padding: 20px; color: #2c3e50; }
     .container { max-width: 1300px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 18px 40px rgba(0,0,0,0.08); overflow: hidden; }
@@ -37,11 +37,11 @@
     .bear { color: #d64545; font-weight: 700; }
     .notice { font-size: 13px; color: #6b7a90; line-height: 1.5; }
     @media (max-width: 920px) { .content-grid { grid-template-columns: 1fr; } .sidebar { border-left: none; border-top: 1px solid #e3e8f0; } }
-  </style>
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
+    <div class="container">
+        <div class="header">
       <h1>Stock Price Predictor</h1>
       <div class="sub">NASDAQ-first real data, technicals, and 30-day outlook</div>
     </div>
@@ -74,20 +74,20 @@
         <div class="card chart-card">
           <div class="title" id="histTitle">Historical Price</div>
           <canvas id="priceChart"></canvas>
-        </div>
+            </div>
 
         <div class="card chart-card">
           <div class="title">30-Day Prediction</div>
           <canvas id="predictionChart"></canvas>
-        </div>
+            </div>
 
         <div class="card" id="results" style="display:none">
           <div class="grid" id="stockInfo"></div>
           <div style="margin-top:12px">
             <div id="predictionText" class="muted"></div>
-          </div>
-        </div>
-      </div>
+                        </div>
+                    </div>
+                </div>
       <div class="sidebar">
         <div class="card">
           <div class="title">Quick KPIs</div>
@@ -101,7 +101,7 @@
             <div class="kpi"><span class="muted">Day High</span><span id="kpiHigh">-</span></div>
             <div class="kpi"><span class="muted">Day Low</span><span id="kpiLow">-</span></div>
           </div>
-        </div>
+                    </div>
         <div class="card">
           <div class="title">Market Mood</div>
           <div style="text-align:center">
@@ -109,18 +109,25 @@
             <div style="display:flex; justify-content:space-around; margin-top:10px">
               <div><div id="bullPct" class="bull">0%</div><div class="muted" style="font-size:12px">Bullish</div></div>
               <div><div id="bearPct" class="bear">0%</div><div class="muted" style="font-size:12px">Bearish</div></div>
-            </div>
+                        </div>
+                    </div>
+                </div>
+        <div class="card">
+          <div class="title">Data Comparison</div>
+          <div id="dataComparison" style="font-size:12px; color:#666;">
+            <div>Click "Test All Providers" to see why prices differ</div>
           </div>
-        </div>
+          <button id="testProvidersBtn" class="btn" style="margin-top:10px; padding:8px 12px; font-size:12px;">Test All Providers</button>
+                    </div>
         <div class="card">
           <div class="title">Important Notice</div>
           <div class="notice">This tool uses public market data for educational purposes and is not financial advice.</div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <script>
+    <script>
     const stockDataCache = { quotes: new Map(), history: new Map(), suggestions: new Map() };
     const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
 
@@ -407,14 +414,14 @@
       const k = 2 / (period + 1);
       let ema = values[0];
       for (let i = 1; i < values.length; i++) ema = values[i] * k + ema * (1 - k);
-      return ema;
-    }
+            return ema;
+        }
     function calculateSMA(values, period) {
       if (values.length < period) return values[values.length - 1] ?? 0;
       const slice = values.slice(-period);
       const sum = slice.reduce((a, b) => a + b, 0);
-      return sum / period;
-    }
+            return sum / period;
+        }
     function calculateRSI(values, period = 14) {
       if (values.length < period + 1) return 50;
       let gains = 0, losses = 0;
@@ -503,8 +510,8 @@
 
     function generatePrediction(quote, history) {
       const prices = history.map(d => d.price);
-      const rsi = calculateRSI(prices);
-      const macd = calculateMACD(prices);
+            const rsi = calculateRSI(prices);
+            const macd = calculateMACD(prices);
       const sma20 = calculateSMA(prices, 20);
       const sma50 = calculateSMA(prices, 50);
       const sma5 = calculateSMA(prices, 5);
@@ -623,8 +630,8 @@
       const ratio = total > 0 ? bull / total : 0.5;
       const direction = ratio > 0.5 ? 'bullish' : 'bearish';
       const confidence = Math.round(Math.min(Math.abs(ratio - 0.5) * 2, 0.95) * 100);
-      
-      return { 
+            
+            return {
         direction, 
         confidence, 
         bullishRatio: ratio,
@@ -691,6 +698,82 @@
       document.getElementById('kpiLow').textContent = formatCurrency(quote.dayLow, quote.currency);
     }
 
+    async function fetchAllProviders(symbol) {
+      const providers = ['polygon', 'iex', 'alpha_vantage', 'twelve_data', 'finnhub', 'yahoo'];
+      const results = {};
+      
+      for (const provider of providers) {
+        try {
+          const res = await fetch(`/api/quote?symbol=${encodeURIComponent(symbol)}&provider=${provider}`);
+          if (res.ok) {
+            const data = await res.json();
+            results[provider] = {
+              price: data.price,
+              change: data.change,
+              timestamp: data.lastUpdate || new Date().toISOString(),
+              quality: data.dataQuality || 'unknown'
+            };
+          }
+        } catch (e) {
+          results[provider] = { error: e.message };
+        }
+      }
+      return results;
+    }
+
+    async function testAllProviders(symbol) {
+      const comp = document.getElementById('dataComparison');
+      comp.innerHTML = '<div>Testing all providers...</div>';
+      
+      try {
+        const results = await fetchAllProviders(symbol);
+        let html = '<div style="margin-bottom:10px;"><strong>Provider Comparison:</strong></div>';
+        
+        for (const [provider, data] of Object.entries(results)) {
+          if (data.error) {
+            html += `<div style="margin-bottom:5px; color:#999;">${provider.toUpperCase()}: <span style="color:#e74c3c;">Failed</span></div>`;
+          } else {
+            const time = new Date(data.timestamp).toLocaleTimeString();
+            const quality = data.quality === 'real-time' ? '🟢' : data.quality === 'delayed' ? '🟡' : '⚪';
+            html += `<div style="margin-bottom:5px;">${provider.toUpperCase()}: <strong>$${data.price?.toFixed(2)}</strong> ${quality} (${time})</div>`;
+          }
+        }
+        
+        html += `
+          <div style="margin-top:10px; font-size:11px; color:#999; border-top:1px solid #eee; padding-top:8px;">
+            <div><strong>Why prices differ:</strong></div>
+            <div>• Different data sources have different update frequencies</div>
+            <div>• Some show pre-market, others regular market</div>
+            <div>• Real-time vs delayed data (15-20 min delay)</div>
+            <div>• Different consolidation rules</div>
+            <div>• Google may use a different primary source</div>
+          </div>
+        `;
+        
+        comp.innerHTML = html;
+      } catch (e) {
+        comp.innerHTML = `<div style="color:#e74c3c;">Error testing providers: ${e.message}</div>`;
+      }
+    }
+
+    function updateDataComparison(symbol, currentQuote) {
+      const comp = document.getElementById('dataComparison');
+      comp.innerHTML = `
+        <div style="margin-bottom:8px;"><strong>Current: ${currentQuote.provider?.toUpperCase() || 'UNKNOWN'}</strong></div>
+        <div style="margin-bottom:8px;">Price: <strong>$${currentQuote.price?.toFixed(2)}</strong></div>
+        <div style="margin-bottom:8px;">Time: ${new Date(currentQuote.lastUpdate || Date.now()).toLocaleTimeString()}</div>
+        <div style="margin-bottom:8px;">Quality: ${currentQuote.dataQuality || 'unknown'}</div>
+        <div style="margin-bottom:8px;">Session: ${currentQuote.session || 'REGULAR'}</div>
+        <div style="font-size:11px; color:#999;">
+          <div>Why prices differ:</div>
+          <div>• Different data sources</div>
+          <div>• Different timestamps</div>
+          <div>• Pre/post market vs regular</div>
+          <div>• Real-time vs delayed</div>
+        </div>
+      `;
+    }
+
     function fillInfo(quote) {
       const info = document.getElementById('stockInfo');
       const source = (quote.provider || '').toUpperCase();
@@ -707,6 +790,9 @@
         <div class="info"><div class="label">Data Source</div><div class="value">${source || 'YAHOO'}${delayedBadge}${qualityBadge}</div></div>
         <div class="info"><div class="label">As of</div><div class="value">${asOf.toLocaleString()}</div></div>
       `;
+      
+      // Update comparison
+      updateDataComparison(quote.symbol, quote);
     }
 
     function populateInitialDatalist() {
@@ -799,6 +885,10 @@
     document.getElementById('analyzeBtn').addEventListener('click', () => analyze());
     document.getElementById('stockInput').addEventListener('input', debounce(updateSuggestions, 250));
     document.getElementById('stockInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') analyze(); });
+    document.getElementById('testProvidersBtn').addEventListener('click', () => {
+      if (currentSymbol) testAllProviders(currentSymbol);
+      else alert('Please analyze a stock first');
+    });
     document.querySelectorAll('.tf').forEach(btn => btn.addEventListener('click', async (e) => {
       document.querySelectorAll('.tf').forEach(b => b.classList.remove('active'));
       e.currentTarget.classList.add('active');
@@ -820,6 +910,6 @@
 
     // Initialize datalist on load
     window.addEventListener('DOMContentLoaded', populateInitialDatalist);
-  </script>
+    </script>
 </body>
 </html>

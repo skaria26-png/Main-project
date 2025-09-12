@@ -210,6 +210,7 @@
       const change = (rng() - 0.5) * 5;
       const price = Math.max(5, base + change);
       return {
+        provider: 'fallback',
         symbol,
         name: (localCompanies.find(c => c.s === symbol)?.n) || symbol,
         price,
@@ -265,6 +266,18 @@
       return ordered;
     }
 
+    // Backend first helpers
+    async function backendFetchQuote(symbol) {
+      const res = await fetch(`/api/quote?symbol=${encodeURIComponent(symbol)}`);
+      if (!res.ok) throw new Error('backend quote failed');
+      return await res.json();
+    }
+    async function backendFetchHistory(symbol, range) {
+      const res = await fetch(`/api/history?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}`);
+      if (!res.ok) throw new Error('backend history failed');
+      return await res.json();
+    }
+
     async function updateSuggestions(e) {
       const val = e.target.value.trim();
       const dl = document.getElementById('stockSuggestions');
@@ -305,6 +318,7 @@
       const q = (data.quoteResponse?.result || [])[0];
       if (!q) throw new Error('No quote');
       const value = {
+        provider: 'yahoo',
         symbol: q.symbol,
         name: q.longName || q.shortName || q.symbol,
         price: q.regularMarketPrice,
@@ -349,11 +363,13 @@
       return out;
     }
 
-    // Safe wrappers with fallback
+    // Safe wrappers with backend -> yahoo -> fallback
     async function safeFetchLiveQuote(symbol) {
+      try { return await backendFetchQuote(symbol); } catch {}
       try { return await fetchLiveQuote(symbol); } catch { return generateFallbackQuote(symbol); }
     }
     async function safeFetchStockHistory(symbol, range) {
+      try { return await backendFetchHistory(symbol, range); } catch {}
       try { return await fetchStockHistory(symbol, range); } catch { return generateFallbackHistory(symbol, range); }
     }
 
@@ -496,10 +512,12 @@
 
     function fillInfo(quote) {
       const info = document.getElementById('stockInfo');
+      const source = (quote.provider || '').toUpperCase();
       info.innerHTML = `
         <div class="info"><div class="label">Symbol</div><div class="value">${quote.symbol} (${quote.exchangeName})</div></div>
         <div class="info"><div class="label">Company</div><div class="value">${quote.name}</div></div>
         <div class="info"><div class="label">Currency</div><div class="value">${quote.currency || 'USD'}</div></div>
+        <div class="info"><div class="label">Data Source</div><div class="value">${source || 'YAHOO'}</div></div>
         <div class="info"><div class="label">Updated</div><div class="value">${new Date().toLocaleTimeString()}</div></div>
       `;
     }

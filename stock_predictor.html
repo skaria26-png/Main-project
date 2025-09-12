@@ -317,12 +317,23 @@
       const data = await res.json();
       const q = (data.quoteResponse?.result || [])[0];
       if (!q) throw new Error('No quote');
+      const marketState = q.marketState; // PRE, REGULAR, POST, CLOSED, etc.
+      const pre = q.preMarketPrice;
+      const post = q.postMarketPrice;
+      const regular = q.regularMarketPrice;
+      let displayPrice = regular;
+      let session = 'REGULAR';
+      if ((marketState === 'PRE' || marketState === 'PREPRE') && pre != null) { displayPrice = pre; session = 'PRE'; }
+      else if ((marketState === 'POST' || marketState === 'POSTPOST' || marketState === 'CLOSED') && post != null) { displayPrice = post; session = 'POST'; }
+      const asOfEpoch = (session === 'PRE' ? q.preMarketTime : (session === 'POST' ? q.postMarketTime : q.regularMarketTime));
+      const asOf = asOfEpoch ? new Date(asOfEpoch * 1000) : new Date();
+
       const value = {
         provider: 'yahoo',
         symbol: q.symbol,
         name: q.longName || q.shortName || q.symbol,
-        price: q.regularMarketPrice,
-        change: q.regularMarketChange,
+        price: displayPrice,
+        change: q.regularMarketChange, // session change fields vary; keep regular change for reference
         changePercent: q.regularMarketChangePercent,
         volume: q.regularMarketVolume,
         marketCap: q.marketCap,
@@ -331,7 +342,11 @@
         dayHigh: q.regularMarketDayHigh ?? q.dayHigh,
         dayLow: q.regularMarketDayLow ?? q.dayLow,
         currency: q.currency || 'USD',
-        exchangeName: q.fullExchangeName || q.exchange || q.exchangeDisplay || '—'
+        exchangeName: q.fullExchangeName || q.exchange || q.exchangeDisplay || '—',
+        marketState: marketState || '—',
+        session,
+        asOfISO: asOf.toISOString(),
+        isDelayed: true
       };
       stockDataCache.quotes.set(key, { t: now, v: value });
       return value;
@@ -513,12 +528,16 @@
     function fillInfo(quote) {
       const info = document.getElementById('stockInfo');
       const source = (quote.provider || '').toUpperCase();
+      const asOf = quote.asOfISO ? new Date(quote.asOfISO) : new Date();
+      const delayedBadge = quote.isDelayed ? ' (Delayed)' : '';
+      const session = quote.session || 'REGULAR';
       info.innerHTML = `
         <div class="info"><div class="label">Symbol</div><div class="value">${quote.symbol} (${quote.exchangeName})</div></div>
         <div class="info"><div class="label">Company</div><div class="value">${quote.name}</div></div>
         <div class="info"><div class="label">Currency</div><div class="value">${quote.currency || 'USD'}</div></div>
-        <div class="info"><div class="label">Data Source</div><div class="value">${source || 'YAHOO'}</div></div>
-        <div class="info"><div class="label">Updated</div><div class="value">${new Date().toLocaleTimeString()}</div></div>
+        <div class="info"><div class="label">Session</div><div class="value">${session}</div></div>
+        <div class="info"><div class="label">Data Source</div><div class="value">${source || 'YAHOO'}${delayedBadge}</div></div>
+        <div class="info"><div class="label">As of</div><div class="value">${asOf.toLocaleString()}</div></div>
       `;
     }
 

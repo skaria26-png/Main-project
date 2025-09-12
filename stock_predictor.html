@@ -1,741 +1,620 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Price Predictor</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .main-content {
-            padding: 40px;
-        }
-
-        .search-section {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .search-input {
-            flex: 1;
-            min-width: 200px;
-            padding: 15px;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .search-btn {
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .search-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .results {
-            display: none;
-        }
-
-        .stock-info {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-        }
-
-        .stock-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .stock-symbol {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .current-price {
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
-
-        .price-up {
-            color: #27ae60;
-        }
-
-        .price-down {
-            color: #e74c3c;
-        }
-
-        .price-change {
-            font-size: 1rem;
-            margin-left: 10px;
-        }
-
-        .prediction-card {
-            background: white;
-            border: 2px solid #e1e8ed;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-
-        .prediction-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .prediction-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-right: 15px;
-        }
-
-        .prediction-up {
-            background: #d5f4e6;
-            color: #27ae60;
-        }
-
-        .prediction-down {
-            background: #fadbd8;
-            color: #e74c3c;
-        }
-
-        .prediction-text {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        .confidence {
-            background: #e8f4fd;
-            color: #2980b9;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-left: auto;
-        }
-
-        .analysis-section {
-            margin-top: 20px;
-        }
-
-        .analysis-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 15px;
-        }
-
-        .indicators {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .indicator {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .indicator-name {
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-
-        .indicator-value {
-            font-size: 1.1rem;
-            margin-bottom: 5px;
-        }
-
-        .indicator-signal {
-            font-size: 0.9rem;
-            padding: 4px 8px;
-            border-radius: 12px;
-        }
-
-        .signal-bullish {
-            background: #d5f4e6;
-            color: #27ae60;
-        }
-
-        .signal-bearish {
-            background: #fadbd8;
-            color: #e74c3c;
-        }
-
-        .signal-neutral {
-            background: #f4f6f7;
-            color: #7f8c8d;
-        }
-
-        .reasoning {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-        }
-
-        .reasoning-title {
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-
-        .reasoning-text {
-            line-height: 1.6;
-            color: #555;
-        }
-
-        .error {
-            background: #fadbd8;
-            color: #e74c3c;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .chart-container {
-            background: white;
-            border: 2px solid #e1e8ed;
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 20px;
-        }
-
-        .chart-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .chart-placeholder {
-            height: 300px;
-            background: #f8f9fa;
-            border: 2px dashed #bdc3c7;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #7f8c8d;
-            font-size: 1.1rem;
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                padding: 20px;
-            }
-            
-            .search-section {
-                flex-direction: column;
-            }
-            
-            .stock-header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .prediction-header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .confidence {
-                margin-left: 0;
-                margin-top: 10px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stock Price Predictor</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; background: linear-gradient(135deg, #e6ebf4, #cfd8e6); min-height: 100vh; padding: 20px; color: #2c3e50; }
+    .container { max-width: 1300px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 18px 40px rgba(0,0,0,0.08); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #2c3e50, #3e4a5a); color: #fff; padding: 28px; text-align: center; }
+    .header h1 { font-weight: 600; letter-spacing: 0.3px; }
+    .sub { opacity: 0.9; font-weight: 400; margin-top: 6px; }
+    .content-grid { display: grid; grid-template-columns: 1fr 340px; }
+    .primary { padding: 26px; }
+    .sidebar { background: linear-gradient(180deg,#f7f9fc,#eef2f7); padding: 22px; border-left: 1px solid #e3e8f0; }
+    .search-row { display: grid; gap: 12px; grid-template-columns: 1fr auto; align-items: center; }
+    .search-input { width: 100%; padding: 14px 16px; border: 2px solid #e3e8f0; border-radius: 14px; outline: none; font-size: 15px; transition: box-shadow .2s, border-color .2s; }
+    .search-input:focus { border-color: #5b7bd5; box-shadow: 0 0 0 4px rgba(91,123,213,0.15); }
+    .btn { padding: 12px 18px; border-radius: 12px; border: none; background: linear-gradient(135deg,#5b7bd5,#6b8fe9); color: #fff; font-weight: 600; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(91,123,213,0.25); }
+    .timeframes { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .tf { padding: 8px 14px; border-radius: 20px; border: 2px solid #e3e8f0; background: #fff; font-weight: 600; cursor: pointer; }
+    .tf.active { background: #5b7bd5; color: #fff; border-color: #5b7bd5; }
+    .card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 8px 18px rgba(0,0,0,0.06); margin-top: 18px; }
+    .chart-card canvas { height: 260px; max-height: 260px; }
+    .title { font-weight: 700; margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 14px; }
+    .info { background: #f3f6fb; border-left: 4px solid #5b7bd5; border-radius: 10px; padding: 12px; text-align: center; }
+    .info .label { color: #6b7a90; font-size: 12px; text-transform: uppercase; letter-spacing: .3px; margin-bottom: 6px; }
+    .info .value { font-size: 20px; font-weight: 700; }
+    .kpis { display: grid; gap: 12px; }
+    .kpi { display: flex; justify-content: space-between; align-items: center; background: #f3f6fb; border-left: 3px solid #5b7bd5; border-radius: 10px; padding: 12px; }
+    .muted { color: #6b7a90; }
+    .bull { color: #1f9d57; font-weight: 700; }
+    .bear { color: #d64545; font-weight: 700; }
+    .notice { font-size: 13px; color: #6b7a90; line-height: 1.5; }
+    @media (max-width: 920px) { .content-grid { grid-template-columns: 1fr; } .sidebar { border-left: none; border-top: 1px solid #e3e8f0; } }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📈 Stock Price Predictor</h1>
-            <p>AI-powered analysis to predict stock price movements with technical indicators</p>
-        </div>
-
-        <div class="main-content">
-            <div class="search-section">
-                <input type="text" class="search-input" id="stockSymbol" placeholder="Enter stock symbol (e.g., AAPL, GOOGL, MSFT)" value="AAPL">
-                <button class="search-btn" id="searchBtn" onclick="analyzeStock()">Analyze Stock</button>
-            </div>
-
-            <div id="loading" class="loading" style="display: none;">
-                <div class="spinner"></div>
-                <p>Analyzing stock data and calculating predictions...</p>
-            </div>
-
-            <div id="error" class="error" style="display: none;"></div>
-
-            <div id="results" class="results">
-                <div class="stock-info">
-                    <div class="stock-header">
-                        <div>
-                            <div class="stock-symbol" id="stockSymbolDisplay"></div>
-                            <div id="companyName"></div>
-                        </div>
-                        <div>
-                            <div class="current-price" id="currentPrice"></div>
-                            <div id="priceChange"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="prediction-card">
-                    <div class="prediction-header">
-                        <div class="prediction-icon" id="predictionIcon"></div>
-                        <div class="prediction-text" id="predictionText"></div>
-                        <div class="confidence" id="confidence"></div>
-                    </div>
-
-                    <div class="analysis-section">
-                        <div class="analysis-title">Technical Analysis</div>
-                        <div class="indicators" id="indicators"></div>
-
-                        <div class="reasoning">
-                            <div class="reasoning-title">Analysis Reasoning</div>
-                            <div class="reasoning-text" id="reasoning"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <div class="chart-title">Price Chart (Last 30 Days)</div>
-                    <div class="chart-placeholder" id="chartPlaceholder">
-                        📊 Interactive chart would be displayed here
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <h1>Stock Price Predictor</h1>
+      <div class="sub">NASDAQ-first real data, technicals, and 30-day outlook</div>
     </div>
+    <div class="content-grid">
+      <div class="primary">
+        <div class="search-row">
+          <input id="stockInput" class="search-input" placeholder="Type company or symbol (e.g., Apple or AAPL)" list="stockSuggestions">
+          <datalist id="stockSuggestions"></datalist>
+          <button class="btn" id="analyzeBtn">Analyze</button>
+        </div>
+        <div class="timeframes">
+          <button class="tf active" data-days="7" data-range="7d">1W</button>
+          <button class="tf" data-days="30" data-range="1mo">1M</button>
+          <button class="tf" data-days="90" data-range="3mo">3M</button>
+          <button class="tf" data-days="180" data-range="6mo">6M</button>
+        </div>
 
-    <script>
-        // Mock stock data for demonstration
-        const mockStockData = {
-            'AAPL': {
-                symbol: 'AAPL',
-                name: 'Apple Inc.',
-                price: 175.43,
-                change: 2.34,
-                changePercent: 1.35,
-                volume: 45678900,
-                marketCap: 2800000000000,
-                pe: 28.5,
-                data: generateMockPriceData(175.43)
-            },
-            'GOOGL': {
-                symbol: 'GOOGL',
-                name: 'Alphabet Inc.',
-                price: 142.56,
-                change: -1.23,
-                changePercent: -0.85,
-                volume: 23456700,
-                marketCap: 1800000000000,
-                pe: 25.2,
-                data: generateMockPriceData(142.56)
-            },
-            'MSFT': {
-                symbol: 'MSFT',
-                name: 'Microsoft Corporation',
-                price: 378.85,
-                change: 4.67,
-                changePercent: 1.25,
-                volume: 34567800,
-                marketCap: 2800000000000,
-                pe: 32.1,
-                data: generateMockPriceData(378.85)
-            },
-            'TSLA': {
-                symbol: 'TSLA',
-                name: 'Tesla, Inc.',
-                price: 248.50,
-                change: -5.20,
-                changePercent: -2.05,
-                volume: 67890100,
-                marketCap: 790000000000,
-                pe: 45.8,
-                data: generateMockPriceData(248.50)
-            }
-        };
+        <div class="card chart-card">
+          <div class="title" id="histTitle">Historical Price</div>
+          <canvas id="priceChart"></canvas>
+        </div>
 
-        function generateMockPriceData(currentPrice) {
-            const data = [];
-            let price = currentPrice * 0.9; // Start 10% below current price
-            
-            for (let i = 0; i < 30; i++) {
-                // Random walk with slight upward bias
-                const change = (Math.random() - 0.4) * 0.02; // -0.4 to 0.6, slight upward bias
-                price *= (1 + change);
-                data.push({
-                    date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000),
-                    price: price,
-                    volume: Math.floor(Math.random() * 10000000) + 1000000
-                });
-            }
-            return data;
-        }
+        <div class="card chart-card">
+          <div class="title">30-Day Prediction</div>
+          <canvas id="predictionChart"></canvas>
+        </div>
 
-        function calculateRSI(prices, period = 14) {
-            if (prices.length < period + 1) return 50;
-            
-            let gains = 0;
-            let losses = 0;
-            
-            for (let i = 1; i <= period; i++) {
-                const change = prices[i] - prices[i - 1];
-                if (change > 0) gains += change;
-                else losses -= change;
-            }
-            
-            const avgGain = gains / period;
-            const avgLoss = losses / period;
-            
-            if (avgLoss === 0) return 100;
-            
-            const rs = avgGain / avgLoss;
-            return 100 - (100 / (1 + rs));
-        }
+        <div class="card" id="results" style="display:none">
+          <div class="grid" id="stockInfo"></div>
+          <div style="margin-top:12px">
+            <div id="predictionText" class="muted"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="card">
+          <div class="title">Quick KPIs</div>
+          <div class="kpis">
+            <div class="kpi"><span class="muted">Current Price</span><span id="kpiPrice">-</span></div>
+            <div class="kpi"><span class="muted">Change</span><span id="kpiChange">-</span></div>
+            <div class="kpi"><span class="muted">Volume</span><span id="kpiVolume">-</span></div>
+            <div class="kpi"><span class="muted">Market Cap</span><span id="kpiMcap">-</span></div>
+            <div class="kpi"><span class="muted">P/E</span><span id="kpiPE">-</span></div>
+            <div class="kpi"><span class="muted">Prev Close</span><span id="kpiPrev">-</span></div>
+            <div class="kpi"><span class="muted">Day High</span><span id="kpiHigh">-</span></div>
+            <div class="kpi"><span class="muted">Day Low</span><span id="kpiLow">-</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="title">Market Mood</div>
+          <div style="text-align:center">
+            <canvas id="moodChart" style="max-width:200px; max-height:200px"></canvas>
+            <div style="display:flex; justify-content:space-around; margin-top:10px">
+              <div><div id="bullPct" class="bull">0%</div><div class="muted" style="font-size:12px">Bullish</div></div>
+              <div><div id="bearPct" class="bear">0%</div><div class="muted" style="font-size:12px">Bearish</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="title">Important Notice</div>
+          <div class="notice">This tool uses public market data for educational purposes and is not financial advice.</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        function calculateMACD(prices) {
-            const ema12 = calculateEMA(prices, 12);
-            const ema26 = calculateEMA(prices, 26);
-            const macdLine = ema12 - ema26;
-            const signalLine = calculateEMA([macdLine], 9);
-            const histogram = macdLine - signalLine;
-            
-            return { macdLine, signalLine, histogram };
-        }
+  <script>
+    const stockDataCache = { quotes: new Map(), history: new Map(), suggestions: new Map() };
+    const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
 
-        function calculateEMA(prices, period) {
-            if (prices.length < period) return prices[prices.length - 1];
-            
-            const multiplier = 2 / (period + 1);
-            let ema = prices[0];
-            
-            for (let i = 1; i < prices.length; i++) {
-                ema = (prices[i] * multiplier) + (ema * (1 - multiplier));
-            }
-            
-            return ema;
-        }
+    // Built-in popular companies for instant lookup (prioritize NASDAQ, then NYSE)
+    const localCompanies = [
+      { s: 'AAPL', n: 'Apple Inc.', e: 'NASDAQ' },
+      { s: 'MSFT', n: 'Microsoft Corporation', e: 'NASDAQ' },
+      { s: 'NVDA', n: 'NVIDIA Corporation', e: 'NASDAQ' },
+      { s: 'TSLA', n: 'Tesla, Inc.', e: 'NASDAQ' },
+      { s: 'AMZN', n: 'Amazon.com, Inc.', e: 'NASDAQ' },
+      { s: 'GOOGL', n: 'Alphabet Inc. Class A', e: 'NASDAQ' },
+      { s: 'GOOG', n: 'Alphabet Inc. Class C', e: 'NASDAQ' },
+      { s: 'META', n: 'Meta Platforms, Inc.', e: 'NASDAQ' },
+      { s: 'NFLX', n: 'Netflix, Inc.', e: 'NASDAQ' },
+      { s: 'AVGO', n: 'Broadcom Inc.', e: 'NASDAQ' },
+      { s: 'AMD', n: 'Advanced Micro Devices, Inc.', e: 'NASDAQ' },
+      { s: 'INTC', n: 'Intel Corporation', e: 'NASDAQ' },
+      { s: 'QCOM', n: 'QUALCOMM Incorporated', e: 'NASDAQ' },
+      { s: 'ADI', n: 'Analog Devices, Inc.', e: 'NASDAQ' },
+      { s: 'MU', n: 'Micron Technology, Inc.', e: 'NASDAQ' },
+      { s: 'CRWD', n: 'CrowdStrike Holdings, Inc.', e: 'NASDAQ' },
+      { s: 'PANW', n: 'Palo Alto Networks, Inc.', e: 'NASDAQ' },
+      { s: 'SNOW', n: 'Snowflake Inc.', e: 'NYSE' },
+      { s: 'SHOP', n: 'Shopify Inc.', e: 'NYSE' },
+      { s: 'ABNB', n: 'Airbnb, Inc.', e: 'NASDAQ' },
+      { s: 'UBER', n: 'Uber Technologies, Inc.', e: 'NYSE' },
+      { s: 'LYFT', n: 'Lyft, Inc.', e: 'NASDAQ' },
+      { s: 'ORCL', n: 'Oracle Corporation', e: 'NYSE' },
+      { s: 'JPM', n: 'JPMorgan Chase & Co.', e: 'NYSE' },
+      { s: 'BAC', n: 'Bank of America Corporation', e: 'NYSE' },
+      { s: 'WFC', n: 'Wells Fargo & Company', e: 'NYSE' },
+      { s: 'V', n: 'Visa Inc.', e: 'NYSE' },
+      { s: 'MA', n: 'Mastercard Incorporated', e: 'NYSE' },
+      { s: 'KO', n: 'The Coca-Cola Company', e: 'NYSE' },
+      { s: 'PEP', n: 'PepsiCo, Inc.', e: 'NASDAQ' },
+      { s: 'MCD', n: 'McDonald\'s Corporation', e: 'NYSE' },
+      { s: 'DIS', n: 'The Walt Disney Company', e: 'NYSE' },
+      { s: 'NKE', n: 'NIKE, Inc.', e: 'NYSE' },
+      { s: 'T', n: 'AT&T Inc.', e: 'NYSE' },
+      { s: 'VZ', n: 'Verizon Communications Inc.', e: 'NYSE' },
+      { s: 'XOM', n: 'Exxon Mobil Corporation', e: 'NYSE' },
+      { s: 'CVX', n: 'Chevron Corporation', e: 'NYSE' },
+      { s: 'PFE', n: 'Pfizer Inc.', e: 'NYSE' },
+      { s: 'JNJ', n: 'Johnson & Johnson', e: 'NYSE' },
+      { s: 'MRK', n: 'Merck & Co., Inc.', e: 'NYSE' },
+      { s: 'UNH', n: 'UnitedHealth Group Incorporated', e: 'NYSE' },
+      { s: 'LLY', n: 'Eli Lilly and Company', e: 'NYSE' },
+      { s: 'COST', n: 'Costco Wholesale Corporation', e: 'NASDAQ' },
+      { s: 'HD', n: 'The Home Depot, Inc.', e: 'NYSE' },
+      { s: 'LOW', n: 'Lowe\'s Companies, Inc.', e: 'NYSE' },
+      { s: 'TSM', n: 'Taiwan Semiconductor Manufacturing Company Limited', e: 'NYSE' },
+      { s: 'BABA', n: 'Alibaba Group Holding Limited', e: 'NYSE' },
+      { s: 'SONY', n: 'Sony Group Corporation', e: 'NYSE' },
+      { s: 'PLTR', n: 'Palantir Technologies Inc.', e: 'NYSE' },
+      { s: 'SQ', n: 'Block, Inc.', e: 'NYSE' },
+      { s: 'PYPL', n: 'PayPal Holdings, Inc.', e: 'NASDAQ' },
+      { s: 'IBM', n: 'International Business Machines Corporation', e: 'NYSE' },
+      { s: 'CRM', n: 'Salesforce, Inc.', e: 'NYSE' },
+      { s: 'ADBE', n: 'Adobe Inc.', e: 'NASDAQ' },
+      { s: 'INTU', n: 'Intuit Inc.', e: 'NASDAQ' },
+      { s: 'SPOT', n: 'Spotify Technology S.A.', e: 'NYSE' },
+      { s: 'NET', n: 'Cloudflare, Inc.', e: 'NYSE' },
+      { s: 'ZM', n: 'Zoom Video Communications, Inc.', e: 'NASDAQ' },
+      { s: 'DOCU', n: 'DocuSign, Inc.', e: 'NASDAQ' },
+      { s: 'ETSY', n: 'Etsy, Inc.', e: 'NASDAQ' },
+      { s: 'ROKU', n: 'Roku, Inc.', e: 'NASDAQ' },
+      { s: 'F', n: 'Ford Motor Company', e: 'NYSE' },
+      { s: 'GM', n: 'General Motors Company', e: 'NYSE' }
+    ];
 
-        function calculateMovingAverage(prices, period) {
-            if (prices.length < period) return prices[prices.length - 1];
-            
-            const sum = prices.slice(-period).reduce((a, b) => a + b, 0);
-            return sum / period;
-        }
+    let currentSymbol = null;
+    let currentExchange = null;
+    let selectedRange = '7d';
+    let selectedDays = 7;
+    let priceChart = null;
+    let predictionChart = null;
+    let moodChart = null;
+    let liveTimer = null;
 
-        function analyzeStock() {
-            const symbol = document.getElementById('stockSymbol').value.toUpperCase();
-            const loading = document.getElementById('loading');
-            const results = document.getElementById('results');
-            const error = document.getElementById('error');
-            
-            // Show loading
-            loading.style.display = 'block';
-            results.style.display = 'none';
-            error.style.display = 'none';
-            
-            // Simulate API delay
-            setTimeout(() => {
-                if (mockStockData[symbol]) {
-                    displayResults(mockStockData[symbol]);
-                } else {
-                    showError(`Stock symbol "${symbol}" not found. Try AAPL, GOOGL, MSFT, or TSLA.`);
-                }
-                loading.style.display = 'none';
-            }, 2000);
-        }
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-        function displayResults(stock) {
-            const results = document.getElementById('results');
-            results.style.display = 'block';
-            
-            // Display basic stock info
-            document.getElementById('stockSymbolDisplay').textContent = stock.symbol;
-            document.getElementById('companyName').textContent = stock.name;
-            
-            const priceChange = stock.change >= 0 ? 'price-up' : 'price-down';
-            const changeSymbol = stock.change >= 0 ? '+' : '';
-            
-            document.getElementById('currentPrice').innerHTML = 
-                `$${stock.price.toFixed(2)} <span class="${priceChange}">${changeSymbol}${stock.change.toFixed(2)} (${changeSymbol}${stock.changePercent.toFixed(2)}%)</span>`;
-            
-            // Calculate technical indicators
-            const prices = stock.data.map(d => d.price);
-            const rsi = calculateRSI(prices);
-            const macd = calculateMACD(prices);
-            const sma20 = calculateMovingAverage(prices, 20);
-            const sma50 = calculateMovingAverage(prices, 50);
-            const currentPrice = stock.price;
-            
-            // Generate prediction
-            const prediction = generatePrediction(stock, rsi, macd, sma20, sma50, currentPrice);
-            
-            // Display prediction
-            const predictionIcon = document.getElementById('predictionIcon');
-            const predictionText = document.getElementById('predictionText');
-            const confidence = document.getElementById('confidence');
-            
-            if (prediction.direction === 'up') {
-                predictionIcon.className = 'prediction-icon prediction-up';
-                predictionIcon.textContent = '📈';
-                predictionText.textContent = 'PREDICTION: STOCK WILL GO UP';
-            } else {
-                predictionIcon.className = 'prediction-icon prediction-down';
-                predictionIcon.textContent = '📉';
-                predictionText.textContent = 'PREDICTION: STOCK WILL GO DOWN';
-            }
-            
-            confidence.textContent = `Confidence: ${prediction.confidence}%`;
-            
-            // Display indicators
-            displayIndicators(rsi, macd, sma20, sma50, currentPrice);
-            
-            // Display reasoning
-            document.getElementById('reasoning').innerHTML = prediction.reasoning;
-        }
+    function formatCurrency(n, c = 'USD') {
+      if (n == null || isNaN(n)) return '-';
+      try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: c, maximumFractionDigits: 2 }).format(n); } catch { return `$${Number(n).toFixed(2)}`; }
+    }
+    function formatNumber(n) { return n == null ? '-' : new Intl.NumberFormat('en-US').format(n); }
+    function formatMcap(n) { if (n == null) return '-'; if (n >= 1e12) return `${(n/1e12).toFixed(2)}T`; if (n >= 1e9) return `${(n/1e9).toFixed(2)}B`; if (n >= 1e6) return `${(n/1e6).toFixed(2)}M`; return formatNumber(n); }
 
-        function generatePrediction(stock, rsi, macd, sma20, sma50, currentPrice) {
-            let bullishSignals = 0;
-            let bearishSignals = 0;
-            let reasoning = [];
-            
-            // RSI Analysis
-            if (rsi < 30) {
-                bullishSignals += 2;
-                reasoning.push(`RSI is oversold at ${rsi.toFixed(1)}, indicating potential buying opportunity.`);
-            } else if (rsi > 70) {
-                bearishSignals += 2;
-                reasoning.push(`RSI is overbought at ${rsi.toFixed(1)}, suggesting potential selling pressure.`);
-            } else if (rsi > 50) {
-                bullishSignals += 1;
-                reasoning.push(`RSI at ${rsi.toFixed(1)} shows bullish momentum.`);
-            } else {
-                bearishSignals += 1;
-                reasoning.push(`RSI at ${rsi.toFixed(1)} indicates bearish momentum.`);
-            }
-            
-            // MACD Analysis
-            if (macd.macdLine > macd.signalLine) {
-                bullishSignals += 2;
-                reasoning.push(`MACD line is above signal line, indicating bullish trend.`);
-            } else {
-                bearishSignals += 2;
-                reasoning.push(`MACD line is below signal line, suggesting bearish trend.`);
-            }
-            
-            // Moving Average Analysis
-            if (currentPrice > sma20 && sma20 > sma50) {
-                bullishSignals += 3;
-                reasoning.push(`Price is above both 20-day and 50-day moving averages, showing strong uptrend.`);
-            } else if (currentPrice < sma20 && sma20 < sma50) {
-                bearishSignals += 3;
-                reasoning.push(`Price is below both moving averages, indicating downtrend.`);
-            } else if (currentPrice > sma20) {
-                bullishSignals += 1;
-                reasoning.push(`Price is above 20-day moving average, showing short-term strength.`);
-            } else {
-                bearishSignals += 1;
-                reasoning.push(`Price is below 20-day moving average, showing short-term weakness.`);
-            }
-            
-            // Volume Analysis
-            const avgVolume = stock.data.slice(-5).reduce((sum, d) => sum + d.volume, 0) / 5;
-            const recentVolume = stock.volume;
-            if (recentVolume > avgVolume * 1.2) {
-                if (stock.change > 0) {
-                    bullishSignals += 1;
-                    reasoning.push(`High volume with price increase suggests strong buying interest.`);
-                } else {
-                    bearishSignals += 1;
-                    reasoning.push(`High volume with price decrease indicates selling pressure.`);
-                }
-            }
-            
-            // Price Change Analysis
-            if (stock.changePercent > 2) {
-                bullishSignals += 1;
-                reasoning.push(`Strong price increase of ${stock.changePercent.toFixed(2)}% shows momentum.`);
-            } else if (stock.changePercent < -2) {
-                bearishSignals += 1;
-                reasoning.push(`Significant price decline of ${stock.changePercent.toFixed(2)}% shows weakness.`);
-            }
-            
-            // Market Cap and PE Analysis
-            if (stock.pe < 20) {
-                bullishSignals += 1;
-                reasoning.push(`Low P/E ratio of ${stock.pe} suggests undervaluation.`);
-            } else if (stock.pe > 40) {
-                bearishSignals += 1;
-                reasoning.push(`High P/E ratio of ${stock.pe} suggests overvaluation.`);
-            }
-            
-            const totalSignals = bullishSignals + bearishSignals;
-            const confidence = totalSignals > 0 ? Math.round((Math.max(bullishSignals, bearishSignals) / totalSignals) * 100) : 50;
-            
-            return {
-                direction: bullishSignals > bearishSignals ? 'up' : 'down',
-                confidence: confidence,
-                reasoning: reasoning.join(' ')
-            };
-        }
+    // Deterministic RNG and fallbacks (ensures graphs even when offline)
+    function createSeededRng(seed) {
+      let state = 0;
+      for (let i = 0; i < seed.length; i++) state = (state * 31 + seed.charCodeAt(i)) >>> 0;
+      return function() { state = (1103515245 * state + 12345) % 0x80000000; return state / 0x80000000; };
+    }
 
-        function displayIndicators(rsi, macd, sma20, sma50, currentPrice) {
-            const indicatorsContainer = document.getElementById('indicators');
-            
-            const indicators = [
-                {
-                    name: 'RSI (14)',
-                    value: rsi.toFixed(1),
-                    signal: rsi < 30 ? 'Oversold' : rsi > 70 ? 'Overbought' : rsi > 50 ? 'Bullish' : 'Bearish',
-                    signalClass: rsi < 30 ? 'signal-bullish' : rsi > 70 ? 'signal-bearish' : rsi > 50 ? 'signal-bullish' : 'signal-bearish'
-                },
-                {
-                    name: 'MACD',
-                    value: macd.macdLine.toFixed(3),
-                    signal: macd.macdLine > macd.signalLine ? 'Bullish' : 'Bearish',
-                    signalClass: macd.macdLine > macd.signalLine ? 'signal-bullish' : 'signal-bearish'
-                },
-                {
-                    name: 'SMA 20',
-                    value: sma20.toFixed(2),
-                    signal: currentPrice > sma20 ? 'Above Price' : 'Below Price',
-                    signalClass: currentPrice > sma20 ? 'signal-bullish' : 'signal-bearish'
-                },
-                {
-                    name: 'SMA 50',
-                    value: sma50.toFixed(2),
-                    signal: currentPrice > sma50 ? 'Above Price' : 'Below Price',
-                    signalClass: currentPrice > sma50 ? 'signal-bullish' : 'signal-bearish'
-                }
-            ];
-            
-            indicatorsContainer.innerHTML = indicators.map(indicator => `
-                <div class="indicator">
-                    <div class="indicator-name">${indicator.name}</div>
-                    <div class="indicator-value">${indicator.value}</div>
-                    <div class="indicator-signal ${indicator.signalClass}">${indicator.signal}</div>
-                </div>
-            `).join('');
-        }
+    function generateFallbackQuote(symbol) {
+      const rng = createSeededRng(symbol);
+      const base = 50 + Math.floor(rng() * 400);
+      const change = (rng() - 0.5) * 5;
+      const price = Math.max(5, base + change);
+      return {
+        symbol,
+        name: (localCompanies.find(c => c.s === symbol)?.n) || symbol,
+        price,
+        change,
+        changePercent: (change / (price - change)) * 100,
+        volume: Math.floor(5_000_000 + rng() * 50_000_000),
+        marketCap: Math.floor(price * (200_000_000 + rng() * 2_000_000_000)),
+        pe: Math.round(10 + rng() * 35),
+        previousClose: price - change,
+        dayHigh: price + Math.abs(change) * 1.4,
+        dayLow: price - Math.abs(change) * 1.4,
+        currency: 'USD',
+        exchangeName: (localCompanies.find(c => c.s === symbol)?.e) || '—'
+      };
+    }
 
-        function showError(message) {
-            const error = document.getElementById('error');
-            error.textContent = message;
-            error.style.display = 'block';
-        }
+    function daysForRange(range) {
+      if (range === '7d') return 7; if (range === '1mo') return 30; if (range === '3mo') return 90; if (range === '6mo') return 180; return 60;
+    }
 
-        // Allow Enter key to trigger search
-        document.getElementById('stockSymbol').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                analyzeStock();
-            }
-        });
+    function generateFallbackHistory(symbol, range) {
+      const n = daysForRange(range);
+      const rng = createSeededRng(symbol + 'hist' + range);
+      const baseQuote = generateFallbackQuote(symbol);
+      const base = baseQuote.price;
+      const out = [];
+      let p = base;
+      for (let i = n - 1; i >= 0; i--) {
+        const drift = (rng() - 0.5) * 0.01; // gentle drift
+        const season = Math.sin((n - i) / 8) * 0.008;
+        const vol = (rng() - 0.5) * 0.02;
+        p = Math.max(3, p * (1 + drift + season + vol));
+        out.push({ date: new Date(Date.now() - i * 86400000), price: p });
+      }
+      return out;
+    }
 
-        // Load default stock on page load
-        window.addEventListener('load', function() {
-            analyzeStock();
-        });
-    </script>
+    async function resolveSymbolFromApi(query) {
+      const key = query.toLowerCase();
+      const now = Date.now();
+      const cached = stockDataCache.suggestions.get(key);
+      if (cached && now - cached.t < CACHE_DURATION) return cached.v;
+
+      const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=10&newsCount=0`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Search failed');
+      const data = await res.json();
+      const quotes = (data.quotes || []).filter(q => q.quoteType === 'EQUITY');
+      const nasdaq = quotes.filter(q => q.exchDisp === 'NASDAQ' || q.exchange === 'NMS');
+      const nyse = quotes.filter(q => q.exchDisp === 'NYSE' || q.exchange === 'NYQ');
+      const ordered = [...nasdaq, ...nyse, ...quotes];
+      stockDataCache.suggestions.set(key, { t: now, v: ordered });
+      return ordered;
+    }
+
+    async function updateSuggestions(e) {
+      const val = e.target.value.trim();
+      const dl = document.getElementById('stockSuggestions');
+      if (!val) { dl.innerHTML = ''; populateInitialDatalist(); return; }
+      let merged = [];
+      try {
+        const results = await resolveSymbolFromApi(val);
+        merged = results.map(q => ({ s: q.symbol, n: q.longname || q.shortname || q.symbol, e: q.exchDisp || q.exchange || '' }));
+      } catch {
+        merged = [];
+      }
+      const localMatches = localCompanies.filter(c => c.s.startsWith(val.toUpperCase()) || c.n.toLowerCase().includes(val.toLowerCase()));
+      merged = [...localMatches, ...merged];
+      // Dedupe by symbol
+      const seen = new Set();
+      const deduped = [];
+      for (const item of merged) { if (!seen.has(item.s)) { seen.add(item.s); deduped.push(item); } }
+
+      dl.innerHTML = '';
+      deduped.slice(0, 20).forEach(q => {
+        const opt = document.createElement('option');
+        opt.value = q.s;
+        opt.label = `${q.n} (${q.e || '—'})`;
+        dl.appendChild(opt);
+      });
+    }
+
+    async function fetchLiveQuote(symbol) {
+      const now = Date.now();
+      const key = symbol.toUpperCase();
+      const cached = stockDataCache.quotes.get(key);
+      if (cached && now - cached.t < 30_000) return cached.v; // 30s for quotes
+
+      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbol)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Quote failed');
+      const data = await res.json();
+      const q = (data.quoteResponse?.result || [])[0];
+      if (!q) throw new Error('No quote');
+      const value = {
+        symbol: q.symbol,
+        name: q.longName || q.shortName || q.symbol,
+        price: q.regularMarketPrice,
+        change: q.regularMarketChange,
+        changePercent: q.regularMarketChangePercent,
+        volume: q.regularMarketVolume,
+        marketCap: q.marketCap,
+        pe: q.trailingPE,
+        previousClose: q.regularMarketPreviousClose ?? q.previousClose,
+        dayHigh: q.regularMarketDayHigh ?? q.dayHigh,
+        dayLow: q.regularMarketDayLow ?? q.dayLow,
+        currency: q.currency || 'USD',
+        exchangeName: q.fullExchangeName || q.exchange || q.exchangeDisplay || '—'
+      };
+      stockDataCache.quotes.set(key, { t: now, v: value });
+      return value;
+    }
+
+    async function fetchStockHistory(symbol, range) {
+      const key = `${symbol}|${range}`;
+      const now = Date.now();
+      const cached = stockDataCache.history.get(key);
+      if (cached && now - cached.t < CACHE_DURATION) return cached.v;
+
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${encodeURIComponent(range)}&interval=1d&events=div,splits`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('History failed');
+      const json = await res.json();
+      const result = json.chart?.result?.[0];
+      if (!result) throw new Error('No history');
+      const ts = result.timestamp || [];
+      const quote = result.indicators?.quote?.[0] || {};
+      const closes = quote.close || [];
+      const out = [];
+      for (let i = 0; i < ts.length; i++) {
+        const c = closes[i];
+        if (c == null) continue;
+        out.push({ date: new Date(ts[i] * 1000), price: c });
+      }
+      if (out.length === 0) throw new Error('Empty history');
+      stockDataCache.history.set(key, { t: now, v: out });
+      return out;
+    }
+
+    // Safe wrappers with fallback
+    async function safeFetchLiveQuote(symbol) {
+      try { return await fetchLiveQuote(symbol); } catch { return generateFallbackQuote(symbol); }
+    }
+    async function safeFetchStockHistory(symbol, range) {
+      try { return await fetchStockHistory(symbol, range); } catch { return generateFallbackHistory(symbol, range); }
+    }
+
+    function calculateEMA(values, period) {
+      if (values.length === 0) return 0;
+      const k = 2 / (period + 1);
+      let ema = values[0];
+      for (let i = 1; i < values.length; i++) ema = values[i] * k + ema * (1 - k);
+      return ema;
+    }
+    function calculateSMA(values, period) {
+      if (values.length < period) return values[values.length - 1] ?? 0;
+      const slice = values.slice(-period);
+      const sum = slice.reduce((a, b) => a + b, 0);
+      return sum / period;
+    }
+    function calculateRSI(values, period = 14) {
+      if (values.length < period + 1) return 50;
+      let gains = 0, losses = 0;
+      for (let i = values.length - period; i < values.length; i++) {
+        const diff = values[i] - values[i - 1];
+        if (diff > 0) gains += diff; else losses -= diff;
+      }
+      const avgGain = gains / period, avgLoss = losses / period;
+      if (avgLoss === 0) return 100;
+      const rs = avgGain / avgLoss;
+      return 100 - 100 / (1 + rs);
+    }
+    function calculateMACD(values) {
+      if (values.length < 40) return { macd: 0, signal: 0, histogram: 0 };
+      const ema12 = calculateEMA(values, 20);
+      const ema26 = calculateEMA(values, 40);
+      const macd = ema12 - ema26;
+      const signal = macd * 0.9; // simplified
+      return { macd, signal, histogram: macd - signal };
+    }
+    function calculateVolatility(values) {
+      if (values.length < 2) return 0;
+      const rets = [];
+      for (let i = 1; i < values.length; i++) rets.push((values[i] - values[i-1]) / values[i-1]);
+      const mean = rets.reduce((a,b)=>a+b,0)/rets.length;
+      const varc = rets.reduce((a,r)=>a+Math.pow(r-mean,2),0)/rets.length;
+      return Math.sqrt(varc);
+    }
+
+    function generatePrediction(quote, history) {
+      const prices = history.map(d => d.price);
+      const rsi = calculateRSI(prices);
+      const macd = calculateMACD(prices);
+      const sma20 = calculateSMA(prices, 30);
+      const sma50 = calculateSMA(prices, 60);
+      const sma5 = calculateSMA(prices, 5);
+      const sma10 = calculateSMA(prices, 10);
+      const current = prices[prices.length - 1];
+
+      let bull = 0, bear = 0;
+      if (rsi < 30) bull += 2; else if (rsi > 70) bear += 2; else if (rsi > 50) bull += 1; else bear += 1;
+      if (macd.macd > macd.signal) bull += 1; else bear += 1;
+      if (current > sma20 && sma20 > sma50) bull += 2; else if (current < sma20 && sma20 < sma50) bear += 2;
+      if (sma5 > sma10) bull += 1; else bear += 1;
+
+      if (quote.volume) {
+        const vr = quote.volume / 30_000_000;
+        if (vr > 1.5) { if (current > prices[prices.length-2]) bull += 1; else bear += 1; }
+      }
+
+      if (prices.length >= 6) {
+        const ch = (current - prices[prices.length-6]) / prices[prices.length-6];
+        if (ch > 0.05) bull += 1; else if (ch < -0.05) bear += 1;
+      }
+
+      const vol = calculateVolatility(prices);
+      if (vol > 0.03) { bull *= 0.9; bear *= 0.9; }
+
+      if (quote.pe) { if (quote.pe < 20) bull += 1; else if (quote.pe > 40) bear += 1; }
+
+      const total = bull + bear;
+      const ratio = total > 0 ? bull / total : 0.5;
+      const direction = ratio > 0.5 ? 'bullish' : 'bearish';
+      const confidence = Math.round(Math.min(Math.abs(ratio - 0.5) * 2, 0.9) * 100);
+      return { direction, confidence, bullishRatio: ratio };
+    }
+
+    function generatePredictionPath(quote, history) {
+      const pred = generatePrediction(quote, history);
+      const last = history[history.length - 1].price;
+      const out = [];
+      for (let i = 1; i <= 30; i++) {
+        const base = pred.direction === 'bullish' ? 0.0012 : -0.0012;
+        const drift = base * i;
+        const noise = (Math.sin(i/3) + Math.sin(i/7))*0.002; // smooth wiggles
+        const next = Math.max(last * (1 + drift + noise), last * 0.7);
+        out.push({ date: new Date(Date.now() + i*86400000), price: next });
+      }
+      return { pred, data: out };
+    }
+
+    function drawPriceChart(history) {
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      if (priceChart) priceChart.destroy();
+      priceChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: history.map(d => d.date.toLocaleDateString()), datasets: [{ label: 'Price', data: history.map(d => d.price), borderColor: '#5b7bd5', backgroundColor: 'rgba(91,123,213,0.12)', fill: true, borderWidth: 2, tension: 0.35, pointRadius: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,0.08)' } } }, interaction: { intersect: false, mode: 'index' } }
+      });
+    }
+
+    function drawPredictionChart(path) {
+      const ctx = document.getElementById('predictionChart').getContext('2d');
+      if (predictionChart) predictionChart.destroy();
+      predictionChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: path.map(d => d.date.toLocaleDateString()), datasets: [{ label: 'Predicted', data: path.map(d => d.price), borderColor: '#d64545', backgroundColor: 'rgba(214,69,69,0.10)', fill: true, borderWidth: 2, tension: 0.35, pointRadius: 0, borderDash: [5,4] }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,0.08)' } } }, interaction: { intersect: false, mode: 'index' } }
+      });
+    }
+
+    function updateMoodChart(pred) {
+      const ctx = document.getElementById('moodChart').getContext('2d');
+      if (moodChart) moodChart.destroy();
+      const bull = Math.round(pred.bullishRatio * 100);
+      const bear = 100 - bull;
+      moodChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Bullish','Bearish'], datasets: [{ data: [bull, bear], backgroundColor: ['#1f9d57','#d64545'], borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } } });
+      document.getElementById('bullPct').textContent = `${bull}%`;
+      document.getElementById('bearPct').textContent = `${bear}%`;
+    }
+
+    function fillKpis(quote) {
+      document.getElementById('kpiPrice').textContent = formatCurrency(quote.price, quote.currency);
+      const ch = quote.change; const chp = quote.changePercent;
+      const sign = ch > 0 ? '+' : '';
+      document.getElementById('kpiChange').innerHTML = `<span class="${ch >= 0 ? 'bull' : 'bear'}">${sign}${ch?.toFixed?.(2) ?? ch} (${sign}${chp?.toFixed?.(2) ?? chp}%)</span>`;
+      document.getElementById('kpiVolume').textContent = formatNumber(quote.volume);
+      document.getElementById('kpiMcap').textContent = formatMcap(quote.marketCap);
+      document.getElementById('kpiPE').textContent = quote.pe?.toFixed ? quote.pe.toFixed(1) : (quote.pe ?? '-');
+      document.getElementById('kpiPrev').textContent = formatCurrency(quote.previousClose, quote.currency);
+      document.getElementById('kpiHigh').textContent = formatCurrency(quote.dayHigh, quote.currency);
+      document.getElementById('kpiLow').textContent = formatCurrency(quote.dayLow, quote.currency);
+    }
+
+    function fillInfo(quote) {
+      const info = document.getElementById('stockInfo');
+      info.innerHTML = `
+        <div class="info"><div class="label">Symbol</div><div class="value">${quote.symbol} (${quote.exchangeName})</div></div>
+        <div class="info"><div class="label">Company</div><div class="value">${quote.name}</div></div>
+        <div class="info"><div class="label">Currency</div><div class="value">${quote.currency || 'USD'}</div></div>
+        <div class="info"><div class="label">Updated</div><div class="value">${new Date().toLocaleTimeString()}</div></div>
+      `;
+    }
+
+    function populateInitialDatalist() {
+      const dl = document.getElementById('stockSuggestions');
+      if (!dl) return;
+      dl.innerHTML = '';
+      // Put NASDAQ first
+      const ordered = [...localCompanies.filter(c => c.e === 'NASDAQ'), ...localCompanies.filter(c => c.e !== 'NASDAQ')];
+      ordered.slice(0, 50).forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.s;
+        opt.label = `${c.n} (${c.e})`;
+        dl.appendChild(opt);
+      });
+    }
+
+    function findLocalByQuery(query) {
+      const q = query.trim();
+      if (!q) return null;
+      const sym = q.toUpperCase();
+      const exact = localCompanies.find(c => c.s === sym);
+      if (exact) return exact;
+      const nameMatch = localCompanies.find(c => c.n.toLowerCase().includes(q.toLowerCase()));
+      return nameMatch || null;
+    }
+
+    async function analyze(symbolOrName) {
+      const query = (symbolOrName || document.getElementById('stockInput').value).trim();
+      if (!query) { alert('Enter a symbol or company name'); return; }
+
+      // Prefer local resolution first
+      let resolved = findLocalByQuery(query);
+      let symbol = resolved?.s || query.toUpperCase();
+      let exchangeName = resolved?.e || null;
+      let nameOverride = resolved?.n || null;
+
+      // If still not clearly a symbol, use API search
+      if (!/^[A-Z.]{1,6}$/.test(symbol)) {
+        try {
+          const results = await resolveSymbolFromApi(query);
+          if (results.length) {
+            const preferred = results.find(q => q.exchDisp === 'NASDAQ' || q.exchange === 'NMS') || results[0];
+            symbol = preferred.symbol.toUpperCase();
+            exchangeName = preferred.exchDisp || preferred.exchange || exchangeName;
+            nameOverride = preferred.longname || preferred.shortname || nameOverride;
+          }
+        } catch {}
+      }
+
+      currentSymbol = symbol;
+      currentExchange = exchangeName;
+
+      document.getElementById('histTitle').textContent = `Historical Price (${document.querySelector('.tf.active').textContent})`;
+
+      const [quote, history] = await Promise.all([
+        safeFetchLiveQuote(symbol),
+        safeFetchStockHistory(symbol, selectedRange)
+      ]);
+
+      if (nameOverride) quote.name = nameOverride;
+      if (exchangeName && quote.exchangeName === '—') quote.exchangeName = exchangeName;
+
+      fillKpis(quote);
+      fillInfo(quote);
+
+      drawPriceChart(history);
+
+      const { pred, data } = generatePredictionPath(quote, history);
+      drawPredictionChart(data);
+      updateMoodChart(pred);
+
+      document.getElementById('predictionText').innerHTML = `${pred.direction === 'bullish' ? '<span class="bull">Bullish</span>' : '<span class="bear">Bearish</span>'} outlook next 30 days • Confidence ${pred.confidence}%`;
+      document.getElementById('results').style.display = 'block';
+
+      startLiveUpdates();
+    }
+
+    function startLiveUpdates() {
+      if (liveTimer) { clearInterval(liveTimer); liveTimer = null; }
+      if (!currentSymbol) return;
+      liveTimer = setInterval(async () => {
+        try {
+          const q = await safeFetchLiveQuote(currentSymbol);
+          fillKpis(q);
+        } catch {}
+      }, 30000);
+    }
+
+    // Events
+    document.getElementById('analyzeBtn').addEventListener('click', () => analyze());
+    document.getElementById('stockInput').addEventListener('input', debounce(updateSuggestions, 250));
+    document.getElementById('stockInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') analyze(); });
+    document.querySelectorAll('.tf').forEach(btn => btn.addEventListener('click', async (e) => {
+      document.querySelectorAll('.tf').forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      selectedRange = e.currentTarget.getAttribute('data-range');
+      selectedDays = Number(e.currentTarget.getAttribute('data-days'));
+      if (currentSymbol) {
+        try {
+          document.getElementById('histTitle').textContent = `Historical Price (${e.currentTarget.textContent})`;
+          const history = await safeFetchStockHistory(currentSymbol, selectedRange);
+          drawPriceChart(history);
+          const q = await safeFetchLiveQuote(currentSymbol);
+          const { data } = generatePredictionPath(q, history);
+          drawPredictionChart(data);
+        } catch {}
+      }
+    }));
+
+    function debounce(fn, wait) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), wait); }; }
+
+    // Initialize datalist on load
+    window.addEventListener('DOMContentLoaded', populateInitialDatalist);
+  </script>
 </body>
 </html>

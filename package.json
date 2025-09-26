@@ -1,17 +1,60 @@
 {
+  // ===== PACKAGE METADATA =====
+  // Package name - used for npm registry identification
+  // Must be unique if publishing to npm, lowercase, no spaces
   "name": "main-project",
+  
+  // Semantic versioning (SemVer) - follows MAJOR.MINOR.PATCH format
+  // 1.0.0 = Major version 1, Minor version 0, Patch version 0
+  // MAJOR: Breaking changes, MINOR: New features (backward compatible), PATCH: Bug fixes
   "version": "1.0.0",
+  
+  // Private package - prevents accidental publishing to npm registry
+  // Set to true for internal/private projects that shouldn't be published
   "private": true,
+  
+  // Human-readable description of the project
+  // Used in npm search results and package listings
   "description": "Stock predictor with professional data proxy backend",
+  
+  // ===== ENTRY POINT =====
+  // Main entry point file when package is required/imported
+  // Points to the primary JavaScript file that starts the application
   "main": "server/index.js",
+  
+  // ===== NPM SCRIPTS =====
+  // Custom commands that can be run with 'npm run <script-name>'
+  // These scripts are defined in the package.json and can be executed via npm
   "scripts": {
+    // Start script - runs the main application
+    // Can be executed with: npm start or npm run start
+    // Uses Node.js to run the server/index.js file
     "start": "node server/index.js"
   },
+  
+  // ===== DEPENDENCIES =====
+  // External packages required for the application to run
+  // These are installed when running 'npm install'
   "dependencies": {
+    // CORS (Cross-Origin Resource Sharing) middleware
+    // Version ^2.8.5 means: >=2.8.5 but <3.0.0
+    // Enables the server to handle requests from different domains/origins
+    // Essential for web applications making API calls from browsers
     "cors": "^2.8.5",
+    
+    // Express.js - Fast, unopinionated web framework for Node.js
+    // Version ^4.19.2 means: >=4.19.2 but <5.0.0
+    // Provides HTTP server functionality, routing, middleware support
+    // Most popular Node.js web framework
     "express": "^4.19.2"
   },
+  
+  // ===== RUNTIME REQUIREMENTS =====
+  // Specifies the Node.js version requirements for this project
   "engines": {
+    // Requires Node.js version 18 or higher
+    // Node.js 18+ includes modern JavaScript features and performance improvements
+    // Ensures compatibility with modern ES modules and async/await features
     "node": ">=18"
   }
 }

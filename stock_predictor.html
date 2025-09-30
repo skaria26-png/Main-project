@@ -1,603 +1,121 @@
 <!DOCTYPE html>
-<!-- 
-    HTML5 Document Type Declaration - tells the browser this is a modern HTML document
-    This enables modern HTML5 features and ensures proper rendering across different browsers
--->
 <html lang="en">
-<!-- 
-    HTML root element with language attribute set to English
-    The 'lang' attribute helps screen readers and search engines understand the page language
--->
 <head>
-    <!-- 
-        Document head - contains metadata and resources that aren't displayed on the page
-        This section includes character encoding, viewport settings, title, and external libraries
-    -->
-    
-    <!-- 
-        Character encoding declaration - UTF-8 supports all Unicode characters
-        This ensures proper display of international characters, symbols, and emojis
-    -->
     <meta charset="UTF-8">
-    
-    <!-- 
-        Viewport meta tag - essential for responsive web design
-        'width=device-width' makes the page width match the device screen width
-        'initial-scale=1.0' sets the initial zoom level to 100%
-        This prevents mobile browsers from zooming out to show the full desktop layout
-    -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- 
-        Page title - appears in browser tab and search engine results
-        Should be descriptive and include relevant keywords for SEO
-    -->
     <title>Stock Price Predictor</title>
-    
-    <!-- 
-        Chart.js library - external JavaScript library for creating interactive charts
-        CDN (Content Delivery Network) ensures fast loading from geographically close servers
-        Chart.js provides professional-grade charting capabilities with animations and interactions
-    -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
     <style>
-    /* 
-        CSS (Cascading Style Sheets) - defines the visual appearance and layout of HTML elements
-        Styles are applied in order of specificity and cascade down from parent to child elements
-    */
-    
-    /* ===== GLOBAL STYLES ===== */
-    /* 
-        CSS Reset - removes default browser styling for consistent appearance across browsers
-        Universal selector (*) targets all elements
-        box-sizing: border-box includes padding and border in element's total width/height
-        This prevents layout issues when adding padding or borders
-    */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    /* 
-        Body element styling - defines the main page appearance
-        font-family: Uses system fonts for native OS appearance (better performance than web fonts)
-        -apple-system: macOS/iOS system font
-        BlinkMacSystemFont: macOS Chrome system font
-        'Segoe UI': Windows system font
-        Roboto: Android system font
-        Fallback fonts ensure compatibility across all operating systems
-        
-        background: linear-gradient creates a smooth color transition
-        135deg: gradient angle (diagonal from top-left to bottom-right)
-        #e6ebf4 to #cfd8e6: light blue gradient for modern, professional appearance
-        
-        min-height: 100vh: ensures page takes full viewport height (vh = viewport height units)
-        padding: 20px: adds space around the content
-        color: #2c3e50: dark blue-gray text color for good readability
-    */
-    body { 
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; 
-        background: linear-gradient(135deg, #e6ebf4, #cfd8e6); /* Subtle blue gradient */
-        min-height: 100vh; 
-        padding: 20px; 
-        color: #2c3e50; 
-    }
-    
-    /* 
-        Main container - wraps all page content
-        max-width: 1300px: limits width on large screens for better readability
-        margin: 0 auto: centers the container horizontally
-        background: #fff: white background for the main content area
-        border-radius: 18px: rounded corners for modern appearance
-        box-shadow: creates depth with subtle shadow
-        0 18px 40px: horizontal offset, vertical offset, blur radius
-        rgba(0,0,0,0.08): black color with 8% opacity for subtle shadow
-        overflow: hidden: clips content that extends beyond rounded corners
-    */
-    .container { 
-        max-width: 1300px; 
-        margin: 0 auto; 
-        background: #fff; 
-        border-radius: 18px; 
-        box-shadow: 0 18px 40px rgba(0,0,0,0.08); /* Soft shadow for depth */
-        overflow: hidden; 
-    }
-    
-    /* 
-        Header section - contains the main title and subtitle
-        background: linear-gradient creates a dark gradient for contrast
-        #2c3e50 to #3e4a5a: dark blue-gray gradient
-        color: #fff: white text for contrast against dark background
-        padding: 28px: internal spacing around content
-        text-align: center: centers the text horizontally
-    */
-    .header { 
-        background: linear-gradient(135deg, #2c3e50, #3e4a5a); 
-        color: #fff; 
-        padding: 28px; 
-        text-align: center; 
-    }
-    /* 
-        Header title styling
-        font-weight: 600: semi-bold weight for emphasis
-        letter-spacing: 0.3px: slight spacing between letters for readability
-    */
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif; background: linear-gradient(135deg, #e6ebf4, #cfd8e6); min-height: 100vh; padding: 20px; color: #2c3e50; }
+    .container { max-width: 1300px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: 0 18px 40px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid rgba(15,23,42,0.08); }
+    .header { background: linear-gradient(135deg, #2c3e50, #3e4a5a); color: #fff; padding: 28px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .header h1 { font-weight: 600; letter-spacing: 0.3px; }
-    /* 
-        Subtitle styling
-        opacity: 0.9: slightly transparent for hierarchy
-        font-weight: 400: normal weight (lighter than title)
-        margin-top: 6px: small space above subtitle
-    */
     .sub { opacity: 0.9; font-weight: 400; margin-top: 6px; }
-    
-    /* 
-        CSS Grid Layout - modern two-column layout system
-        display: grid: enables CSS Grid layout
-        grid-template-columns: 1fr 340px: 
-            - 1fr: first column takes remaining space (flexible)
-            - 340px: second column is fixed width (sidebar)
-        This creates a responsive main content area with fixed sidebar
-    */
     .content-grid { display: grid; grid-template-columns: 1fr 340px; }
-    /* 
-        Primary content area - main section with charts and analysis
-        padding: 26px: internal spacing for content
-    */
-    .primary { padding: 26px; } /* Main content area padding */
-    /* 
-        Sidebar - contains KPIs, market mood, and additional information
-        background: linear-gradient: vertical gradient from light to slightly darker
-        #f7f9fc to #eef2f7: very light blue gradient for subtle visual separation
-        padding: 22px: internal spacing
-        border-left: 1px solid #e3e8f0: left border to separate from main content
-    */
-    .sidebar { 
-        background: linear-gradient(180deg,#f7f9fc,#eef2f7); 
-        padding: 22px; 
-        border-left: 1px solid #e3e8f0; 
-    }
-    /* ===== FORM AND INPUT STYLES ===== */
-    /* 
-        Search row layout - horizontal arrangement of input field and analyze button
-        display: grid: enables CSS Grid for precise layout control
-        gap: 12px: space between grid items (input and button)
-        grid-template-columns: 1fr auto:
-            - 1fr: input field takes remaining space (flexible)
-            - auto: button takes only space it needs (fixed width)
-        align-items: center: vertically centers both elements
-    */
-    .search-row { 
-        display: grid; 
-        gap: 12px; 
-        grid-template-columns: 1fr auto; 
-        align-items: center; 
-    }
-    
-    /* 
-        Input field styling - modern, accessible form input design
-        width: 100%: takes full width of its container
-        padding: 14px 16px: internal spacing (vertical, horizontal)
-        border: 2px solid #e3e8f0: light gray border
-        border-radius: 14px: rounded corners for modern appearance
-        outline: none: removes default browser focus outline
-        font-size: 15px: readable text size
-        transition: smooth animation for focus states
-        box-shadow .2s: shadow animation duration
-        border-color .2s: border color animation duration
-    */
-    .search-input { 
-        width: 100%; 
-        padding: 14px 16px; 
-        border: 2px solid #e3e8f0; 
-        border-radius: 14px; 
-        outline: none; 
-        font-size: 15px; 
-        transition: box-shadow .2s, border-color .2s; 
-    }
-    /* 
-        Focus state - when user clicks or tabs into input field
-        border-color: #5b7bd5: changes border to blue when focused
-        box-shadow: creates a blue glow around the input
-        0 0 0 4px: no offset, 4px blur radius
-        rgba(91,123,213,0.15): blue color with 15% opacity
-        This provides clear visual feedback for accessibility
-    */
-    .search-input:focus { 
-        border-color: #5b7bd5; 
-        box-shadow: 0 0 0 4px rgba(91,123,213,0.15); /* Blue focus ring */
-    }
-    
-    /* 
-        Button styling - modern, interactive button design
-        padding: 12px 18px: internal spacing for comfortable click target
-        border-radius: 12px: rounded corners matching input field
-        border: none: removes default button border
-        background: linear-gradient: blue gradient for visual appeal
-        #5b7bd5 to #6b8fe9: blue gradient from darker to lighter
-        color: #fff: white text for contrast
-        font-weight: 600: semi-bold text for emphasis
-        cursor: pointer: shows hand cursor on hover
-        transition: smooth animations for hover effects
-        transform .15s ease: smooth transform animation
-        box-shadow .15s ease: smooth shadow animation
-    */
-    .btn { 
-        padding: 12px 18px; 
-        border-radius: 12px; 
-        border: none; 
-        background: linear-gradient(135deg,#5b7bd5,#6b8fe9); 
-        color: #fff; 
-        font-weight: 600; 
-        cursor: pointer; 
-        transition: transform .15s ease, box-shadow .15s ease; 
-    }
-    /* 
-        Hover state - when user hovers over button
-        transform: translateY(-1px): moves button up 1 pixel (lift effect)
-        box-shadow: creates larger shadow for depth
-        0 8px 18px: no horizontal offset, 8px vertical offset, 18px blur
-        rgba(91,123,213,0.25): blue shadow with 25% opacity
-        This creates an engaging, interactive feel
-    */
-    .btn:hover { 
-        transform: translateY(-1px); /* Subtle lift effect */
-        box-shadow: 0 8px 18px rgba(91,123,213,0.25); 
-    }
-    
-    /* ===== TIMEFRAME SELECTION STYLES ===== */
-    /* 
-        Container for timeframe selection buttons (1W, 1M, 3M, 6M)
-        display: flex: horizontal layout for buttons
-        gap: 10px: space between buttons
-        margin-top: 14px: space above the button group
-        flex-wrap: wrap: allows buttons to wrap to next line on small screens
-    */
-    .timeframes { 
-        display: flex; 
-        gap: 10px; 
-        margin-top: 14px; 
-        flex-wrap: wrap; 
-    }
-    
-    /* 
-        Individual timeframe button styling
-        padding: 8px 14px: internal spacing for comfortable click target
-        border-radius: 20px: fully rounded corners (pill shape)
-        border: 2px solid #e3e8f0: light gray border
-        background: #fff: white background
-        font-weight: 600: semi-bold text for emphasis
-        cursor: pointer: shows hand cursor on hover
-    */
-    .tf { 
-        padding: 8px 14px; 
-        border-radius: 20px; 
-        border: 2px solid #e3e8f0; 
-        background: #fff; 
-        font-weight: 600; 
-        cursor: pointer; 
-    }
-    /* 
-        Active timeframe button - currently selected option
-        background: #5b7bd5: blue background to indicate selection
-        color: #fff: white text for contrast
-        border-color: #5b7bd5: blue border to match background
-    */
-    .tf.active { 
-        background: #5b7bd5; 
-        color: #fff; 
-        border-color: #5b7bd5; 
-    }
-    
-    /* ===== CARD AND LAYOUT STYLES ===== */
-    /* Generic card container with shadow and rounded corners */
-    .card { 
-        background: #fff; 
-        border-radius: 14px; 
-        padding: 18px; 
-        box-shadow: 0 8px 18px rgba(0,0,0,0.06); 
-        margin-top: 18px; 
-    }
-    
-    /* Chart containers with fixed height for consistent layout */
-    .chart-card canvas { 
-        height: 260px; 
-        max-height: 260px; 
-    }
-    
-    /* Card title styling */
-    .title { 
-        font-weight: 700; 
-        margin-bottom: 10px; 
-    }
-    
-    /* Responsive grid for stock information cards */
-    .grid { 
-        display: grid; 
-        grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); 
-        gap: 14px; 
-    }
-    
-    /* Individual info card styling with colored left border */
-    .info { 
-        background: #f3f6fb; 
-        border-left: 4px solid #5b7bd5; 
-        border-radius: 10px; 
-        padding: 12px; 
-        text-align: center; 
-    }
-    .info .label { 
-        color: #6b7a90; 
-        font-size: 12px; 
-        text-transform: uppercase; 
-        letter-spacing: .3px; 
-        margin-bottom: 6px; 
-    }
-    .info .value { 
-        font-size: 20px; 
-        font-weight: 700; 
-    }
-    
-    /* ===== KPI AND DATA STYLES ===== */
-    /* Key Performance Indicators container */
-    .kpis { 
-        display: grid; 
-        gap: 12px; 
-    }
-    
-    /* Individual KPI row with label and value */
-    .kpi { 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center; 
-        background: #f3f6fb; 
-        border-left: 3px solid #5b7bd5; 
-        border-radius: 10px; 
-        padding: 12px; 
-    }
-    
-    /* ===== TEXT COLOR UTILITIES ===== */
-    .muted { color: #6b7a90; } /* Muted text color */
-    .bull { color: #1f9d57; font-weight: 700; } /* Bullish/green color */
-    .bear { color: #d64545; font-weight: 700; } /* Bearish/red color */
-    
-    /* ===== PREDICTION STRENGTH STYLES ===== */
-    .bull.strong { 
-      color: #22c55e; 
-      font-weight: 800; 
-      text-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
-    }
-    .bear.strong { 
-      color: #ef4444; 
-      font-weight: 800; 
-      text-shadow: 0 0 4px rgba(239, 68, 68, 0.3);
-    }
-    .bull.very-strong { 
-      color: #00ff88; 
-      font-weight: 900; 
-      text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
-      animation: pulse-glow 2s ease-in-out infinite alternate;
-    }
-    .bear.very-strong { 
-      color: #ff4444; 
-      font-weight: 900; 
-      text-shadow: 0 0 8px rgba(255, 68, 68, 0.5);
-      animation: pulse-glow 2s ease-in-out infinite alternate;
-    }
-    
-    /* Pulse glow animation for very strong predictions */
-    @keyframes pulse-glow {
-      0% { text-shadow: 0 0 8px rgba(0, 255, 136, 0.5); }
-      100% { text-shadow: 0 0 12px rgba(0, 255, 136, 0.8); }
-    }
-    
-    /* Notice text styling for disclaimers and info */
-    .notice { 
-        font-size: 13px; 
-        color: #6b7a90; 
-        line-height: 1.5; 
-    }
-    
-    /* ===== ML MODEL PERFORMANCE STYLES ===== */
-    .metric {
-        margin-bottom: 12px;
-    }
-    
-    .metric-label {
-        font-size: 12px;
-        color: #6b7a90;
-        font-weight: 500;
-        margin-bottom: 4px;
-    }
-    
-    .metric-value {
-        font-size: 16px;
-        font-weight: 700;
-        color: #2c3e50;
-    }
-    
-    /* Confidence bar styling */
-    .confidence-bar {
-        width: 100%;
-        height: 8px;
-        background-color: #e3e8f0;
-        border-radius: 4px;
-        overflow: hidden;
-        margin: 10px 0;
-    }
-    
-    .confidence-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #d64545 0%, #f39c12 50%, #1f9d57 100%);
-        border-radius: 4px;
-        transition: width 0.8s ease-in-out;
-    }
-    
-    .confidence-text {
-        font-size: 13px;
-        color: #6b7a90;
-        text-align: center;
-        margin-top: 8px;
-    }
-    /* ===== RESPONSIVE DESIGN ===== */
-    /* Mobile and tablet responsive adjustments */
-    @media (max-width: 920px) { 
-      .content-grid { grid-template-columns: 1fr; } /* Single column layout on mobile */
-      .sidebar { border-left: none; border-top: 1px solid #e3e8f0; } /* Move sidebar below main content */
-      #investmentAnalysis .grid { grid-template-columns: 1fr; } /* Single column for investment analysis */
-      #investmentAnalysis .strategy-buttons { flex-direction: column; } /* Stack strategy buttons vertically */
-    }
+    .primary { padding: 26px; }
+    .sidebar { background: linear-gradient(180deg,#f7f9fc,#eef2f7); padding: 22px; border-left: 1px solid #e3e8f0; }
+    .search-row { display: grid; gap: 12px; grid-template-columns: 1fr auto; align-items: center; }
+    .search-input { width: 100%; padding: 14px 16px; border: 2px solid #e3e8f0; border-radius: 12px; outline: none; font-size: 15px; transition: box-shadow .2s, border-color .2s, background-color .2s; background-color: #fff; }
+    .search-input:hover { border-color: #d7ddeb; }
+    .search-input:focus { border-color: #5b7bd5; box-shadow: 0 0 0 4px rgba(91,123,213,0.12); background-color: #fbfdff; }
+    .btn { padding: 12px 18px; border-radius: 10px; border: 1px solid rgba(15,23,42,0.08); background: linear-gradient(135deg,#5b7bd5,#6b8fe9); color: #fff; font-weight: 600; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease, filter .15s ease; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(91,123,213,0.22); filter: saturate(1.05); }
+    .btn:active { transform: translateY(0); box-shadow: 0 4px 10px rgba(91,123,213,0.15); }
+    .btn.secondary { background: #fff; color: #1f2937; border: 1px solid #e5e7eb; }
+    .btn.secondary:hover { background: #f8fafc; }
+    .timeframes { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .tf { padding: 8px 14px; border-radius: 9999px; border: 2px solid #e3e8f0; background: #fff; font-weight: 600; cursor: pointer; transition: background-color .2s, color .2s, border-color .2s, box-shadow .2s; }
+    .tf:hover { border-color: #d7ddeb; box-shadow: 0 3px 10px rgba(0,0,0,0.04); }
+    .tf.active { background: #5b7bd5; color: #fff; border-color: #5b7bd5; box-shadow: 0 6px 16px rgba(91,123,213,0.25); }
+    .card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 8px 18px rgba(0,0,0,0.06); margin-top: 18px; border: 1px solid rgba(15,23,42,0.06); transition: box-shadow .2s, transform .2s; }
+    .card:hover { box-shadow: 0 12px 24px rgba(0,0,0,0.08); transform: translateY(-1px); }
+    .chart-card canvas { height: 260px; max-height: 260px; }
+    .title { font-weight: 700; margin-bottom: 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 14px; }
+    .info { background: #f8fafc; border-left: 4px solid #5b7bd5; border-radius: 10px; padding: 12px; text-align: center; border: 1px solid rgba(15,23,42,0.06); }
+    .info .label { color: #6b7a90; font-size: 12px; text-transform: uppercase; letter-spacing: .3px; margin-bottom: 6px; }
+    .info .value { font-size: 20px; font-weight: 700; }
+    .kpis { display: grid; gap: 12px; }
+    .kpi { display: flex; justify-content: space-between; align-items: center; background: #f3f6fb; border-left: 3px solid #5b7bd5; border-radius: 10px; padding: 12px; border: 1px solid rgba(15,23,42,0.06); }
+    .muted { color: #6b7a90; }
+    .bull { color: #1f9d57; font-weight: 700; }
+    .bear { color: #d64545; font-weight: 700; }
+    .notice { font-size: 13px; color: #6b7a90; line-height: 1.5; }
+    @media (max-width: 920px) { .content-grid { grid-template-columns: 1fr; } .sidebar { border-left: none; border-top: 1px solid #e3e8f0; } }
     </style>
 </head>
 <body>
-    <!-- Main application container -->
     <div class="container">
-        <!-- Application header with title and subtitle -->
         <div class="header">
       <h1>Stock Price Predictor</h1>
       <div class="sub">NASDAQ-first real data, technicals, and 30-day outlook</div>
     </div>
-        
-        <!-- Two-column layout: main content + sidebar -->
     <div class="content-grid">
-            <!-- Main content area containing search, charts, and analysis -->
       <div class="primary">
-                <!-- Stock search interface with autocomplete -->
         <div class="search-row">
-                    <!-- Input field with datalist for autocomplete suggestions -->
           <input id="stockInput" class="search-input" placeholder="Type company or symbol (e.g., Apple or AAPL)" list="stockSuggestions">
           <datalist id="stockSuggestions"></datalist>
-                    <!-- Primary action button to analyze selected stock -->
           <button class="btn" id="analyzeBtn">Analyze</button>
         </div>
-                <!-- Historical data timeframe selection buttons -->
         <div class="timeframes">
-                    <!-- 1 Week historical data -->
           <button class="tf active" data-days="7" data-range="7d">1W</button>
-                    <!-- 1 Month historical data -->
           <button class="tf" data-days="30" data-range="1mo">1M</button>
-                    <!-- 3 Months historical data -->
           <button class="tf" data-days="90" data-range="3mo">3M</button>
-                    <!-- 6 Months historical data -->
           <button class="tf" data-days="180" data-range="6mo">6M</button>
         </div>
-                
-                <!-- Data provider and ML model selection -->
-        <div style="margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap: wrap;">
+        <div style="margin-top:10px; display:flex; gap:10px; align-items:center">
           <span class="muted" style="font-size:13px">Provider</span>
-                    <select id="providerSelect" class="search-input" style="max-width:220px; padding:8px 10px; height:auto" disabled>
-                        <option value="alpha_vantage">Alpha Vantage (Real-time Data)</option>
-          </select>
-          
-          <span class="muted" style="font-size:13px">ML Model</span>
-          <select id="modelSelect" class="search-input" style="max-width:200px; padding:8px 10px; height:auto">
-            <option value="random_forest">🌳 Random Forest</option>
-            <option value="extra_trees">🌲 Extra Trees</option>
-            <option value="lstm">🔄 LSTM</option>
-            <option value="linear_regression">➖ Linear Regression</option>
-            <option value="kneighbors">🤝 K-Neighbors</option>
+          <select id="providerSelect" class="search-input" style="max-width:220px; padding:8px 10px; height:auto">
+            <option value="">Auto (Finnhub → Polygon → IEX → Alpha Vantage → Twelve Data → Yahoo)</option>
+            <option value="finnhub">Finnhub (Real-time) [PRIMARY]</option>
+            <option value="polygon">Polygon (Real-time)</option>
+            <option value="iex">IEX Cloud (Real-time)</option>
+            <option value="alpha_vantage">Alpha Vantage (Real-time)</option>
+            <option value="twelve_data">Twelve Data (Real-time)</option>
+            <option value="yahoo">Yahoo (Delayed)</option>
           </select>
         </div>
 
-                <!-- Historical price chart container -->
         <div class="card chart-card">
           <div class="title" id="histTitle">Historical Price</div>
-                    <!-- Canvas element for Chart.js historical price visualization -->
           <canvas id="priceChart"></canvas>
             </div>
 
-                <!-- Prediction chart container with timeframe selection -->
         <div class="card chart-card">
-                    <div class="title" id="predictionTitle">30-Day Prediction</div>
-                    
-                    <!-- Prediction timeframe selection buttons -->
-                    <div style="display: flex; gap: 8px; margin-bottom: 15px; justify-content: center;">
-                        <!-- 1 Day prediction -->
-                        <button class="tf prediction-tf active" data-days="1" data-label="1 Day">1D</button>
-                        <!-- 1 Week prediction -->
-                        <button class="tf prediction-tf" data-days="7" data-label="1 Week">1W</button>
-                        <!-- 30 Day prediction -->
-                        <button class="tf prediction-tf" data-days="30" data-label="30 Days">30D</button>
-                    </div>
-                    
-                    <!-- Canvas element for Chart.js prediction visualization -->
-          <canvas id="predictionChart"></canvas>
-          
-          <!-- Prediction Summary -->
-          <div id="predictionSummary" style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px; font-size: 13px;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-              <div class="info">
-                <div class="label">Prediction Period</div>
-                <div class="value" id="predictionPeriod">-</div>
-              </div>
-              <div class="info">
-                <div class="label">Expected Change</div>
-                <div class="value" id="expectedChange">-</div>
-              </div>
-              <div class="info">
-                <div class="label">Confidence</div>
-                <div class="value" id="predictionConfidence">-</div>
-              </div>
-              <div class="info">
-                <div class="label">Target Price</div>
-                <div class="value" id="targetPrice">-</div>
-              </div>
-            </div>
+          <div class="title">Price Prediction</div>
+          <div class="timeframes" style="margin-bottom:10px;">
+            <button class="tf active" data-days="7" data-range="1w">1W</button>
+            <button class="tf" data-days="21" data-range="3w">3W</button>
+            <button class="tf" data-days="30" data-range="1m">1M</button>
+            <button class="tf" data-days="90" data-range="3m">3M</button>
+            <button class="tf" data-days="180" data-range="6m">6M</button>
           </div>
+          <canvas id="predictionChart"></canvas>
             </div>
 
         <div class="card" id="results" style="display:none">
           <div class="grid" id="stockInfo"></div>
           <div style="margin-top:12px">
             <div id="predictionText" class="muted"></div>
-                        </div>
-                    </div>
-
-        <!-- Investment Analysis Section -->
-        <div class="card" id="investmentAnalysis" style="display:none; margin-top: 20px;">
-          <div class="title" style="font-size: 18px; margin-bottom: 20px;">📊 Investment Analysis & Recommendations</div>
-          
-          <!-- Strategy Selection -->
-          <div class="strategy-buttons" style="display: flex; gap: 12px; margin-bottom: 20px; justify-content: center;">
-            <button id="dayTradingBtn" class="btn" style="padding: 10px 20px; font-size: 14px; background: #5b7bd5; min-width: 120px;">Day Trading</button>
-            <button id="longTermBtn" class="btn" style="padding: 10px 20px; font-size: 14px; background: #6b7a90; min-width: 120px;">Long Term</button>
           </div>
+        </div>
 
-          <!-- Main Recommendation Card -->
-          <div id="mainRecommendation" style="background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 12px; padding: 20px; margin-bottom: 20px; text-align: center;">
-            <div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: #2c3e50;">Current Recommendation</div>
-            <div id="recommendationText" style="font-size: 18px; font-weight: 700; margin-bottom: 12px;"></div>
-            <div id="confidenceLevel" style="font-size: 14px; color: #6b7a90;"></div>
+        <div class="card" id="alphaVantageData" style="display:none">
+          <div class="title">Alpha Vantage Analysis</div>
+          <div id="technicalIndicators" style="margin-bottom:15px;">
+            <div style="font-size:14px; font-weight:600; margin-bottom:8px;">Technical Indicators</div>
+            <div id="indicatorsGrid" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(150px,1fr));"></div>
           </div>
-
-          <!-- Detailed Analysis Grid -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            
-            <!-- Technical Signals -->
-            <div style="background: #fff; border-radius: 10px; padding: 15px; border-left: 4px solid #5b7bd5;">
-              <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">🔍 Technical Signals</div>
-              <div id="technicalSignals" style="font-size: 13px; line-height: 1.5;"></div>
-            </div>
-
-            <!-- Risk Assessment -->
-            <div style="background: #fff; border-radius: 10px; padding: 15px; border-left: 4px solid #d64545;">
-              <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">⚠️ Risk Assessment</div>
-              <div id="riskAssessment" style="font-size: 13px; line-height: 1.5;"></div>
-            </div>
+          <div id="companyOverview" style="margin-bottom:15px;">
+            <div style="font-size:14px; font-weight:600; margin-bottom:8px;">Company Overview</div>
+            <div id="overviewGrid" class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px,1fr));"></div>
           </div>
-
-          <!-- Strategy Guidelines -->
-          <div id="strategyGuidelines" style="background: #fff; border-radius: 10px; padding: 15px; border-left: 4px solid #1f9d57;">
-            <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">📋 Strategy Guidelines</div>
-            <div id="guidelinesContent" style="font-size: 13px; line-height: 1.5;"></div>
+          <div style="text-align:center; margin-top:10px;">
+            <button id="loadAlphaVantageBtn" class="btn" style="padding:8px 16px; font-size:12px;">Load Alpha Vantage Data</button>
           </div>
-
-          <!-- Alpha Vantage Technical Indicators -->
-          <div id="alphaVantageIndicators" style="background: #fff; border-radius: 10px; padding: 15px; border-left: 4px solid #8e44ad; margin-top: 15px;">
-            <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">📊 Alpha Vantage Technical Indicators</div>
-            <div id="indicatorsContent" style="font-size: 13px; line-height: 1.5;">
-              <div style="color: #6b7a90;">Click "Load Alpha Vantage Indicators" to get professional technical analysis</div>
-            </div>
-            <button id="loadIndicatorsBtn" class="btn" style="margin-top: 10px; padding: 8px 12px; font-size: 12px;">Load Alpha Vantage Indicators</button>
-                        </div>
-                    </div>
+        </div>
                 </div>
       <div class="sidebar">
         <div class="card">
@@ -626,57 +144,25 @@
         <div class="card">
           <div class="title">Data Comparison</div>
           <div id="dataComparison" style="font-size:12px; color:#666;">
-            <div>Click "Test Alpha Vantage" to verify data accuracy</div>
+            <div>Click "Test All Providers" to see why prices differ</div>
           </div>
-          <button id="testProvidersBtn" class="btn" style="margin-top:10px; padding:8px 12px; font-size:12px;">Test Alpha Vantage</button>
+          <button id="testProvidersBtn" class="btn" style="margin-top:10px; padding:8px 12px; font-size:12px;">Test All Providers</button>
                     </div>
         <div class="card">
           <div class="title">Data Sources</div>
           <div class="notice">
-            <strong>Real-time Data:</strong> <a href="https://www.alphavantage.co/" target="_blank" style="color:#5b7bd5;">Alpha Vantage</a><br>
-            <strong>ML Predictions:</strong> <a href="https://github.com/samadpls/stockseer-api" target="_blank" style="color:#5b7bd5;">StockSeer API</a><br>
-            <strong>ML Models:</strong> Random Forest, Extra Trees, LSTM, Linear Regression, K-Neighbors<br>
-            <strong>Features:</strong> 20+ years historical data, technical indicators, ML-based predictions<br>
-            <strong>⚠️ Note:</strong> Predictions are for educational purposes only, not financial advice
+            <strong>Primary:</strong> <a href="https://finnhub.io/" target="_blank" style="color:#5b7bd5;">Finnhub.io</a> (Real-time)<br>
+            <strong>Enhanced:</strong> <a href="https://www.alphavantage.co/" target="_blank" style="color:#5b7bd5;">Alpha Vantage</a> (Real-time + Technicals)<br>
+            <strong>Free API Keys:</strong><br>
+            • Finnhub: <code>FINNHUB_API_KEY=your_key</code><br>
+            • Alpha Vantage: <code>ALPHA_VANTAGE_KEY=your_key</code><br>
+            <strong>Alpha Vantage Features:</strong><br>
+            • Real-time quotes & historical data<br>
+            • Technical indicators (RSI, MACD, Bollinger Bands)<br>
+            • Company overview & fundamentals<br>
+            • 20+ years of historical data
           </div>
         </div>
-
-        <!-- ML Model Performance Card -->
-        <div class="card" id="mlModelCard" style="display: none;">
-          <div class="title">🤖 ML Model Performance</div>
-          <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 15px;">
-            <div>
-              <div class="metric">
-                <div class="metric-label">Model Used</div>
-                <div class="metric-value" id="mlModelName">—</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">Accuracy</div>
-                <div class="metric-value" id="mlAccuracy">—</div>
-              </div>
-            </div>
-            <div>
-              <div class="metric">
-                <div class="metric-label">R² Score</div>
-                <div class="metric-value" id="mlR2Score">—</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">MSE</div>
-                <div class="metric-value" id="mlMSE">—</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Prediction Confidence Card -->
-        <div class="card" id="predictionConfidenceCard" style="display: none;">
-          <div class="title">📊 Prediction Confidence</div>
-          <div class="confidence-bar">
-            <div class="confidence-fill" id="confidenceBar" style="width: 0%;"></div>
-          </div>
-          <div class="confidence-text" id="confidenceText">No prediction data available</div>
-        </div>
-        
         <div class="card">
           <div class="title">Important Notice</div>
           <div class="notice">This tool uses public market data for educational purposes and is not financial advice.</div>
@@ -686,44 +172,10 @@
     </div>
 
     <script>
-    /* 
-        JavaScript Section - Contains all interactive functionality and data processing
-        This section handles API calls, data caching, technical analysis, and UI updates
-    */
-    
-    /* ===== DATA CACHING SYSTEM ===== */
-    /* 
-        In-memory cache for stock data to reduce API calls and improve performance
-        Caching prevents excessive API requests and improves user experience
-        Map() objects provide efficient key-value storage with O(1) lookup time
-    */
-    const stockDataCache = { 
-        quotes: new Map(),      // Cache for real-time stock quotes (symbol -> {timestamp, data})
-        history: new Map(),     // Cache for historical price data (symbol+range -> {timestamp, data})
-        suggestions: new Map()  // Cache for stock symbol suggestions (query -> {timestamp, results})
-    };
-    
-    /* 
-        Cache duration: 5 minutes to balance performance and data freshness
-        1000 * 60 * 5 = 300,000 milliseconds = 5 minutes
-        This prevents stale data while reducing API rate limit issues
-    */
-    const CACHE_DURATION = 1000 * 60 * 5;
+    const stockDataCache = { quotes: new Map(), history: new Map(), suggestions: new Map() };
+    const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
 
-    /* ===== BUILT-IN STOCK DATABASE ===== */
-    /* 
-        Popular companies database for instant lookup (prioritize NASDAQ, then NYSE)
-        This local database provides fast autocomplete without API calls
-        Structure: { s: symbol, n: name, e: exchange }
-        
-        NASDAQ (National Association of Securities Dealers Automated Quotations):
-        - Technology-heavy exchange with many growth stocks
-        - Higher volatility, more suitable for day trading
-        
-        NYSE (New York Stock Exchange):
-        - Traditional exchange with established companies
-        - More stable, suitable for long-term investing
-    */
+    // Built-in popular companies for instant lookup (prioritize NASDAQ, then NYSE)
     const localCompanies = [
       { s: 'AAPL', n: 'Apple Inc.', e: 'NASDAQ' },
       { s: 'MSFT', n: 'Microsoft Corporation', e: 'NASDAQ' },
@@ -790,177 +242,71 @@
       { s: 'GM', n: 'General Motors Company', e: 'NYSE' }
     ];
 
-    /* ===== GLOBAL APPLICATION STATE ===== */
-    /* 
-        Current analysis state variables - track the currently analyzed stock
-        These variables maintain state across different function calls
-    */
-    let currentSymbol = null;           // Currently analyzed stock symbol (e.g., 'AAPL')
-    let currentExchange = null;         // Exchange of current stock (NASDAQ, NYSE, etc.)
-    let currentQuote = null;            // Current real-time quote data from API
-    let currentHistory = null;          // Current historical price data array
-    
-    /* 
-        UI state variables - track user selections and interface state
-        These control which data is displayed and how it's presented
-    */
-    let selectedRange = '7d';           // Selected historical data range (7d, 1mo, 3mo, 6mo)
-    let selectedDays = 7;               // Number of days for historical data
-    let selectedPredictionDays = 1;     // Prediction timeframe (1, 7, or 30 days)
-    let selectedMLModel = 'random_forest'; // Selected ML model for predictions
-    
-    /* 
-        Chart.js instances for data visualization
-        Chart.js requires destroying old charts before creating new ones to prevent memory leaks
-        These variables store references to active chart instances
-    */
-    let priceChart = null;              // Historical price chart instance
-    let predictionChart = null;         // Prediction chart instance
-    let moodChart = null;               // Market mood doughnut chart instance
-    
-    /* 
-        Live update timer for real-time data refresh
-        setInterval() returns a timer ID that can be cleared with clearInterval()
-        This enables automatic price updates every 30 seconds
-    */
+    let currentSymbol = null;
+    let currentExchange = null;
+    let selectedRange = '7d';
+    let selectedDays = 7;
+    let selectedPredictionDays = 30;
+    let priceChart = null;
+    let predictionChart = null;
+    let moodChart = null;
     let liveTimer = null;
 
-    /* ===== UTILITY FUNCTIONS ===== */
-    /* 
-        Async sleep function for delays between API calls
-        Prevents rate limiting by adding delays between requests
-        Returns a Promise that resolves after the specified milliseconds
-        Used to throttle API calls and avoid hitting rate limits
-    */
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-    /* ===== FORMATTING FUNCTIONS ===== */
-    /* 
-        Format numbers as currency with proper locale formatting
-        Uses Intl.NumberFormat for internationalization support
-        Handles different currencies and provides fallback formatting
-        Parameters:
-        - n: number to format
-        - c: currency code (default 'USD')
-    */
     function formatCurrency(n, c = 'USD') {
       if (n == null || isNaN(n)) return '-';
-        try { 
-            return new Intl.NumberFormat('en-US', { 
-                style: 'currency', 
-                currency: c, 
-                maximumFractionDigits: 2 
-            }).format(n); 
-        } catch { 
-            return `$${Number(n).toFixed(2)}`; // Fallback formatting
-        }
+      try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: c, maximumFractionDigits: 2 }).format(n); } catch { return `$${Number(n).toFixed(2)}`; }
     }
-    
-    /* 
-        Format large numbers with thousands separators
-        Uses Intl.NumberFormat to add commas for readability
-        Example: 1000000 becomes "1,000,000"
-    */
-    function formatNumber(n) { 
-        return n == null ? '-' : new Intl.NumberFormat('en-US').format(n); 
-    }
-    
-    /* 
-        Format market cap with appropriate suffixes (B, T, M)
-        Converts large numbers to human-readable format
-        1e12 = 1,000,000,000,000 (1 trillion)
-        1e9 = 1,000,000,000 (1 billion)
-        1e6 = 1,000,000 (1 million)
-        Example: 2,500,000,000 becomes "2.50B"
-    */
-    function formatMcap(n) { 
-        if (n == null) return '-'; 
-        if (n >= 1e12) return `${(n/1e12).toFixed(2)}T`;  // Trillions
-        if (n >= 1e9) return `${(n/1e9).toFixed(2)}B`;    // Billions
-        if (n >= 1e6) return `${(n/1e6).toFixed(2)}M`;    // Millions
-        return formatNumber(n); 
-    }
+    function formatNumber(n) { return n == null ? '-' : new Intl.NumberFormat('en-US').format(n); }
+    function formatMcap(n) { if (n == null) return '-'; if (n >= 1e12) return `${(n/1e12).toFixed(2)}T`; if (n >= 1e9) return `${(n/1e9).toFixed(2)}B`; if (n >= 1e6) return `${(n/1e6).toFixed(2)}M`; return formatNumber(n); }
 
-    /* ===== FALLBACK DATA GENERATION ===== */
-    /* 
-        Deterministic pseudo-random number generator for consistent fallback data
-        Uses Linear Congruential Generator (LCG) algorithm for predictable results
-        This ensures the same seed always produces the same sequence of "random" numbers
-        Useful for generating consistent demo data when APIs are unavailable
-        
-        LCG Formula: X(n+1) = (a * X(n) + c) mod m
-        Where: a = 1103515245, c = 12345, m = 2^31
-    */
+    // Deterministic RNG and fallbacks (ensures graphs even when offline)
     function createSeededRng(seed) {
       let state = 0;
-        // Initialize state using string hash - converts string to numeric seed
       for (let i = 0; i < seed.length; i++) state = (state * 31 + seed.charCodeAt(i)) >>> 0;
-        // Return generator function using LCG formula
-        return function() { 
-            state = (1103515245 * state + 12345) % 0x80000000; 
-            return state / 0x80000000; // Normalize to 0-1 range
-        };
+      return function() { state = (1103515245 * state + 12345) % 0x80000000; return state / 0x80000000; };
     }
 
-    // Generate realistic fallback stock quote when API is unavailable
     function generateFallbackQuote(symbol) {
       const rng = createSeededRng(symbol);
-        
-        // Generate base price between $50-$450
       const base = 50 + Math.floor(rng() * 400);
-        // Generate daily change between -$2.50 and +$2.50
       const change = (rng() - 0.5) * 5;
-        // Ensure minimum price of $5
       const price = Math.max(5, base + change);
-        
-        // Find company info from local database
-        const companyInfo = localCompanies.find(c => c.s === symbol);
-        
       return {
         provider: 'fallback',
         symbol,
-            name: companyInfo?.n || symbol,
+        name: (localCompanies.find(c => c.s === symbol)?.n) || symbol,
         price,
         change,
         changePercent: (change / (price - change)) * 100,
-            volume: Math.floor(5_000_000 + rng() * 50_000_000), // 5M-55M volume
-            marketCap: Math.floor(price * (200_000_000 + rng() * 2_000_000_000)), // 200M-2.2B shares
-            pe: Math.round(10 + rng() * 35), // P/E ratio 10-45
+        volume: Math.floor(5_000_000 + rng() * 50_000_000),
+        marketCap: Math.floor(price * (200_000_000 + rng() * 2_000_000_000)),
+        pe: Math.round(10 + rng() * 35),
         previousClose: price - change,
         dayHigh: price + Math.abs(change) * 1.4,
         dayLow: price - Math.abs(change) * 1.4,
         currency: 'USD',
-            exchangeName: companyInfo?.e || '—'
+        exchangeName: (localCompanies.find(c => c.s === symbol)?.e) || '—'
       };
     }
 
-    // Convert range string to number of days
     function daysForRange(range) {
-        if (range === '7d') return 7; 
-        if (range === '1mo') return 30; 
-        if (range === '3mo') return 90; 
-        if (range === '6mo') return 180; 
-        return 60; // Default fallback
+      if (range === '7d') return 7; if (range === '1mo') return 30; if (range === '3mo') return 90; if (range === '6mo') return 180; return 60;
     }
 
-    // Generate realistic historical price data for fallback scenarios
     function generateFallbackHistory(symbol, range) {
       const n = daysForRange(range);
-        // Use symbol + range as seed for consistent historical data
       const rng = createSeededRng(symbol + 'hist' + range);
       const baseQuote = generateFallbackQuote(symbol);
       const base = baseQuote.price;
       const out = [];
       let p = base;
-        
-        // Generate price history going backwards from current price
       for (let i = n - 1; i >= 0; i--) {
-            const drift = (rng() - 0.5) * 0.01;        // Gentle random drift
-            const season = Math.sin((n - i) / 8) * 0.008; // Seasonal pattern
-            const vol = (rng() - 0.5) * 0.02;          // Random volatility
-            // Apply price changes with minimum floor of $3
+        const drift = (rng() - 0.5) * 0.01; // gentle drift
+        const season = Math.sin((n - i) / 8) * 0.008;
+        const vol = (rng() - 0.5) * 0.02;
         p = Math.max(3, p * (1 + drift + season + vol));
-            // Add data point with date and price
         out.push({ date: new Date(Date.now() - i * 86400000), price: p });
       }
       return out;
@@ -984,214 +330,19 @@
       return ordered;
     }
 
-    /* ===== STOCKSEER API INTEGRATION ===== */
-    /* 
-        StockSeer API - Machine Learning powered stock prediction API
-        Uses multiple ML algorithms for accurate price predictions:
-        - RandomForestRegressor 🌳
-        - ExtraTreesRegressor 🌲
-        - LinearRegression ➖
-        - KNeighborsRegressor 🤝
-        - LSTM implementation 🔄
-        
-        API Features:
-        - ML-based price predictions
-        - Historical data analysis
-        - Multiple algorithm ensemble
-        - Yahoo Finance data source
-        - FastAPI backend with automatic documentation
-        
-        API Base URL: https://stockseer-api.vercel.app (deployed on Vercel)
-        Documentation: https://stockseer-api.vercel.app/docs
-    */
-    
-    /* ===== ALPHA VANTAGE API INTEGRATION ===== */
-    /* 
-        Alpha Vantage API - professional financial data provider
-        Provides real-time and historical stock data, technical indicators, and market data
-        Features:
-        - Real-time stock quotes
-        - 20+ years of historical data
-        - Professional technical indicators (RSI, MACD, SMA, etc.)
-        - Global market coverage
-        - Institutional-grade data quality
-        
-        API Endpoints used:
-        - GLOBAL_QUOTE: Real-time stock quotes
-        - TIME_SERIES_DAILY/WEEKLY/MONTHLY: Historical price data
-        - Technical indicators: RSI, MACD, SMA, etc.
-    */
-    
-    /* 
-        Fetch real-time stock quote from Alpha Vantage API
-        Uses multiple API keys for better reliability and rate limit handling
-        Rate limits: Free tier = 5 calls/minute, 500 calls/day
-    */
-    async function fetchAlphaVantageQuote(symbol) {
-        // Try multiple API keys for better reliability and rate limit handling
-        const apiKeys = [
-            'demo', // Demo key (limited requests)
-            'YOUR_API_KEY_HERE' // Replace with your actual Alpha Vantage API key
-        ];
-      
-        // Try each API key until one succeeds
-        for (const apiKey of apiKeys) {
-            try {
-                // Alpha Vantage GLOBAL_QUOTE endpoint for real-time data
-                // Returns current price, change, volume, and other real-time data
-                const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`;
-                
-                const res = await fetch(url);
-                if (!res.ok) continue; // Try next API key
-                
-                const data = await res.json();
-                
-                // Check for API errors or rate limiting
-                if (data['Error Message']) continue; // Invalid symbol or API error
-                if (data['Note']) continue; // Skip rate limited keys
-                
-                const quote = data['Global Quote'];
-                if (!quote || !quote['01. symbol']) continue;
-          
-                // Get company name from local companies database
-                const companyInfo = localCompanies.find(c => c.s === symbol.toUpperCase());
-                
-                // Parse and return structured quote data
-                return {
-                    provider: 'alpha_vantage',
-                    symbol: quote['01. symbol'],
-                    name: companyInfo?.n || quote['01. symbol'],
-                    price: parseFloat(quote['05. price']),           // Current price
-                    change: parseFloat(quote['09. change']),         // Price change
-                    changePercent: parseFloat(quote['10. change percent'].replace('%', '')), // Change %
-                    volume: parseInt(quote['06. volume']),           // Trading volume
-                    marketCap: null, // Not provided in Global Quote endpoint
-                    pe: null, // Not provided in Global Quote endpoint
-                    previousClose: parseFloat(quote['08. previous close']), // Previous close
-                    dayHigh: parseFloat(quote['03. high']),          // Day high
-                    dayLow: parseFloat(quote['04. low']),            // Day low
-                    currency: 'USD',
-                    exchangeName: companyInfo?.e || '—',
-                    marketState: 'REGULAR',
-                    session: 'REGULAR',
-                    asOfISO: new Date().toISOString(),              // Timestamp
-                    isDelayed: false,
-                    dataQuality: 'real-time'
-                };
-        } catch (error) {
-          console.log(`API key ${apiKey} failed:`, error.message);
-          continue;
-        }
-      }
-      
-      throw new Error('All Alpha Vantage API keys failed');
+    // Backend first helpers
+    async function backendFetchQuote(symbol) {
+      const prov = document.getElementById('providerSelect')?.value || '';
+      const res = await fetch(`/api/quote?symbol=${encodeURIComponent(symbol)}${prov?`&provider=${prov}`:''}`);
+      if (!res.ok) throw new Error('backend quote failed');
+      return await res.json();
     }
-
-    /* 
-        Fetch historical price data from Alpha Vantage API
-        Different timeframes use different endpoints for optimal data granularity
-        - Daily data: For short-term analysis (7 days, 1 month)
-        - Weekly data: For medium-term analysis (3 months)
-        - Monthly data: For long-term analysis (6+ months)
-    */
-    async function fetchAlphaVantageHistory(symbol, range) {
-      // Try multiple API keys for better reliability
-      const apiKeys = [
-        'demo', // Demo key
-        'YOUR_API_KEY_HERE' // Replace with your actual Alpha Vantage API key
-      ];
-      
-      // Map range to Alpha Vantage function for optimal data granularity
-      let function_name;
-      if (range === '7d' || range === '1mo') {
-        function_name = 'TIME_SERIES_DAILY'; // Daily OHLCV data
-      } else if (range === '3mo') {
-        function_name = 'TIME_SERIES_WEEKLY'; // Weekly OHLCV data
-      } else {
-        function_name = 'TIME_SERIES_MONTHLY'; // Monthly OHLCV data
-      }
-      
-      for (const apiKey of apiKeys) {
-        try {
-          const url = `https://www.alphavantage.co/query?function=${function_name}&symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}&outputsize=compact`;
-          
-          const res = await fetch(url);
-          if (!res.ok) continue;
-          
-          const data = await res.json();
-          
-          if (data['Error Message']) continue;
-          if (data['Note']) continue; // Skip rate limited keys
-          
-          // Extract time series data
-          const timeSeriesKey = function_name === 'TIME_SERIES_DAILY' ? 'Time Series (Daily)' :
-                               function_name === 'TIME_SERIES_WEEKLY' ? 'Weekly Time Series' :
-                               'Monthly Time Series';
-          
-          const timeSeries = data[timeSeriesKey];
-          if (!timeSeries) continue;
-          
-          const out = [];
-          const entries = Object.entries(timeSeries);
-          
-          // Sort by date (newest first) and take appropriate number of days
-          entries.sort((a, b) => new Date(b[0]) - new Date(a[0]));
-          
-          const daysToTake = range === '7d' ? 7 : range === '1mo' ? 30 : range === '3mo' ? 90 : 180;
-          const limitedEntries = entries.slice(0, daysToTake);
-          
-          for (const [date, values] of limitedEntries) {
-            out.push({
-              date: new Date(date),
-              price: parseFloat(values['4. close']),
-              open: parseFloat(values['1. open']),
-              high: parseFloat(values['2. high']),
-              low: parseFloat(values['3. low']),
-              volume: parseInt(values['5. volume'])
-            });
-          }
-          
-          // Reverse to get chronological order (oldest first)
-          return out.reverse();
-        } catch (error) {
-          console.log(`History API key ${apiKey} failed:`, error.message);
-          continue;
-        }
-      }
-      
-      throw new Error('All Alpha Vantage history API keys failed');
+    async function backendFetchHistory(symbol, range) {
+      const prov = document.getElementById('providerSelect')?.value || '';
+      const res = await fetch(`/api/history?symbol=${encodeURIComponent(symbol)}&range=${encodeURIComponent(range)}${prov?`&provider=${prov}`:''}`);
+      if (!res.ok) throw new Error('backend history failed');
+      return await res.json();
     }
-
-    async function fetchAlphaVantageTechnicalIndicator(symbol, indicator, interval = 'daily', time_period = 14) {
-      // Try multiple API keys for better reliability
-      const apiKeys = [
-        'demo', // Demo key
-        'YOUR_API_KEY_HERE' // Replace with your actual Alpha Vantage API key
-      ];
-      
-      for (const apiKey of apiKeys) {
-        try {
-          const url = `https://www.alphavantage.co/query?function=${indicator}&symbol=${encodeURIComponent(symbol)}&interval=${interval}&time_period=${time_period}&series_type=close&apikey=${apiKey}`;
-          
-          const res = await fetch(url);
-          if (!res.ok) continue;
-          
-          const data = await res.json();
-          
-          if (data['Error Message']) continue;
-          if (data['Note']) continue; // Skip rate limited keys
-          
-          return data;
-        } catch (error) {
-          console.log(`Technical indicator API key ${apiKey} failed:`, error.message);
-          continue;
-        }
-      }
-      
-      throw new Error(`All Alpha Vantage ${indicator} API keys failed`);
-    }
-
-    // Alpha Vantage only - no other data sources
 
     async function updateSuggestions(e) {
       const val = e.target.value.trim();
@@ -1220,200 +371,154 @@
       });
     }
 
-    // Removed Yahoo Finance functions - Alpha Vantage only
+    async function fetchLiveQuote(symbol) {
+      const now = Date.now();
+      const key = symbol.toUpperCase();
+      const cached = stockDataCache.quotes.get(key);
+      if (cached && now - cached.t < 30_000) return cached.v; // 30s for quotes
 
-    // Alpha Vantage only - with fallback for demo purposes
+      const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbol)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Quote failed');
+      const data = await res.json();
+      const q = (data.quoteResponse?.result || [])[0];
+      if (!q) throw new Error('No quote');
+      const marketState = q.marketState; // PRE, REGULAR, POST, CLOSED, etc.
+      const pre = q.preMarketPrice;
+      const post = q.postMarketPrice;
+      const regular = q.regularMarketPrice;
+      let displayPrice = regular;
+      let session = 'REGULAR';
+      if ((marketState === 'PRE' || marketState === 'PREPRE') && pre != null) { displayPrice = pre; session = 'PRE'; }
+      else if ((marketState === 'POST' || marketState === 'POSTPOST' || marketState === 'CLOSED') && post != null) { displayPrice = post; session = 'POST'; }
+      const asOfEpoch = (session === 'PRE' ? q.preMarketTime : (session === 'POST' ? q.postMarketTime : q.regularMarketTime));
+      const asOf = asOfEpoch ? new Date(asOfEpoch * 1000) : new Date();
+
+      const value = {
+        provider: 'yahoo',
+        symbol: q.symbol,
+        name: q.longName || q.shortName || q.symbol,
+        price: displayPrice,
+        change: q.regularMarketChange, // session change fields vary; keep regular change for reference
+        changePercent: q.regularMarketChangePercent,
+        volume: q.regularMarketVolume,
+        marketCap: q.marketCap,
+        pe: q.trailingPE,
+        previousClose: q.regularMarketPreviousClose ?? q.previousClose,
+        dayHigh: q.regularMarketDayHigh ?? q.dayHigh,
+        dayLow: q.regularMarketDayLow ?? q.dayLow,
+        currency: q.currency || 'USD',
+        exchangeName: q.fullExchangeName || q.exchange || q.exchangeDisplay || '—',
+        marketState: marketState || '—',
+        session,
+        asOfISO: asOf.toISOString(),
+        isDelayed: true
+      };
+      stockDataCache.quotes.set(key, { t: now, v: value });
+      return value;
+    }
+
+    async function fetchStockHistory(symbol, range) {
+      const key = `${symbol}|${range}`;
+      const now = Date.now();
+      const cached = stockDataCache.history.get(key);
+      if (cached && now - cached.t < CACHE_DURATION) return cached.v;
+
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${encodeURIComponent(range)}&interval=1d&events=div,splits`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('History failed');
+      const json = await res.json();
+      const result = json.chart?.result?.[0];
+      if (!result) throw new Error('No history');
+      const ts = result.timestamp || [];
+      const quote = result.indicators?.quote?.[0] || {};
+      const closes = quote.close || [];
+      const out = [];
+      for (let i = 0; i < ts.length; i++) {
+        const c = closes[i];
+        if (c == null) continue;
+        out.push({ date: new Date(ts[i] * 1000), price: c });
+      }
+      if (out.length === 0) throw new Error('Empty history');
+      stockDataCache.history.set(key, { t: now, v: out });
+      return out;
+    }
+
+    // Safe wrappers with backend -> yahoo -> fallback
     async function safeFetchLiveQuote(symbol) {
-      try { 
-        return await fetchAlphaVantageQuote(symbol); 
-      } catch (error) {
-        console.log('Alpha Vantage failed, using fallback data:', error.message);
-        return generateFallbackQuote(symbol);
-      }
+      try { return await backendFetchQuote(symbol); } catch {}
+      try { return await fetchLiveQuote(symbol); } catch { return generateFallbackQuote(symbol); }
     }
-    
     async function safeFetchStockHistory(symbol, range) {
-      try { 
-        return await fetchAlphaVantageHistory(symbol, range); 
-      } catch (error) {
-        console.log('Alpha Vantage history failed, using fallback data:', error.message);
-        return generateFallbackHistory(symbol, range);
-      }
+      try { return await backendFetchHistory(symbol, range); } catch {}
+      try { return await fetchStockHistory(symbol, range); } catch { return generateFallbackHistory(symbol, range); }
     }
 
-    /* ===== TECHNICAL INDICATORS CALCULATIONS ===== */
-    /* 
-        Technical Analysis - mathematical analysis of price and volume data
-        These indicators help identify trends, momentum, and potential price movements
-        Used by traders to make buy/sell decisions based on historical patterns
-    */
-    
-    /* 
-        Exponential Moving Average (EMA) - gives more weight to recent prices
-        Unlike SMA, EMA responds more quickly to recent price changes
-        Smoothing factor (k) determines how much weight recent prices get
-        Formula: EMA = Price * k + EMA_prev * (1 - k)
-        Where k = 2 / (period + 1)
-    */
     function calculateEMA(values, period) {
       if (values.length === 0) return 0;
-        const k = 2 / (period + 1); // Smoothing factor
-        let ema = values[0]; // Start with first value
-        // Apply EMA formula: EMA = Price * k + EMA_prev * (1 - k)
-        for (let i = 1; i < values.length; i++) {
-            ema = values[i] * k + ema * (1 - k);
-        }
+      const k = 2 / (period + 1);
+      let ema = values[0];
+      for (let i = 1; i < values.length; i++) ema = values[i] * k + ema * (1 - k);
             return ema;
         }
-    
-    /* 
-        Simple Moving Average (SMA) - average of last N periods
-        Most basic trend indicator - smooths out price fluctuations
-        Shows the general direction of price movement over time
-        Period: number of data points to average (e.g., 20 days)
-    */
     function calculateSMA(values, period) {
       if (values.length < period) return values[values.length - 1] ?? 0;
-        const slice = values.slice(-period); // Get last N values
+      const slice = values.slice(-period);
       const sum = slice.reduce((a, b) => a + b, 0);
             return sum / period;
         }
-    
-    /* 
-        Relative Strength Index (RSI) - momentum oscillator (0-100)
-        Measures speed and magnitude of price changes
-        Values above 70 indicate overbought conditions (potential sell signal)
-        Values below 30 indicate oversold conditions (potential buy signal)
-        Period: typically 14 days for calculation
-    */
     function calculateRSI(values, period = 14) {
-        if (values.length < period + 1) return 50; // Default neutral
+      if (values.length < period + 1) return 50;
       let gains = 0, losses = 0;
-        
-        // Calculate average gains and losses over the period
       for (let i = values.length - period; i < values.length; i++) {
         const diff = values[i] - values[i - 1];
-            if (diff > 0) gains += diff; 
-            else losses -= diff;
-        }
-        
-        const avgGain = gains / period;
-        const avgLoss = losses / period;
-        
-        if (avgLoss === 0) return 100; // All gains, RSI = 100
-        const rs = avgGain / avgLoss; // Relative Strength
-        return 100 - 100 / (1 + rs); // RSI formula
+        if (diff > 0) gains += diff; else losses -= diff;
+      }
+      const avgGain = gains / period, avgLoss = losses / period;
+      if (avgLoss === 0) return 100;
+      const rs = avgGain / avgLoss;
+      return 100 - 100 / (1 + rs);
     }
-    /* 
-        Moving Average Convergence Divergence (MACD) - trend following indicator
-        Shows relationship between two moving averages
-        MACD Line = EMA(12) - EMA(26) - shows momentum
-        Signal Line = 9-period EMA of MACD - shows trend changes
-        Histogram = MACD - Signal - shows momentum changes
-        Bullish when MACD > Signal, Bearish when MACD < Signal
-    */
     function calculateMACD(values) {
       if (values.length < 40) return { macd: 0, signal: 0, histogram: 0 };
-        
-        // Calculate 12-period and 26-period EMAs (using 20 and 40 for simplicity)
       const ema12 = calculateEMA(values, 20);
       const ema26 = calculateEMA(values, 40);
-        
-        // MACD line = EMA(12) - EMA(26)
       const macd = ema12 - ema26;
-        
-        // Signal line (simplified - normally 9-period EMA of MACD)
-        const signal = macd * 0.9;
-        
-        // Histogram = MACD - Signal
+      const signal = macd * 0.9; // simplified
       return { macd, signal, histogram: macd - signal };
     }
-    
-    /* 
-        Price volatility calculation (standard deviation of returns)
-        Volatility measures how much price fluctuates over time
-        Higher volatility = more risk but potentially higher returns
-        Calculated as standard deviation of daily percentage returns
-        Used in risk assessment and position sizing
-    */
     function calculateVolatility(values) {
       if (values.length < 2) return 0;
-        
-        // Calculate daily returns (percentage change from day to day)
       const rets = [];
-        for (let i = 1; i < values.length; i++) {
-            rets.push((values[i] - values[i-1]) / values[i-1]);
-        }
-        
-        // Calculate mean return (average daily return)
-        const mean = rets.reduce((a,b) => a + b, 0) / rets.length;
-        
-        // Calculate variance of returns (average squared deviation from mean)
-        const variance = rets.reduce((a, r) => a + Math.pow(r - mean, 2), 0) / rets.length;
-        
-        // Return standard deviation (volatility)
-        return Math.sqrt(variance);
+      for (let i = 1; i < values.length; i++) rets.push((values[i] - values[i-1]) / values[i-1]);
+      const mean = rets.reduce((a,b)=>a+b,0)/rets.length;
+      const varc = rets.reduce((a,r)=>a+Math.pow(r-mean,2),0)/rets.length;
+      return Math.sqrt(varc);
     }
 
-    /* ===== ADVANCED TECHNICAL INDICATORS ===== */
-    /* 
-        Advanced technical indicators provide more sophisticated analysis
-        These indicators help identify support/resistance levels, momentum, and volatility
-    */
-    
-    /* 
-        Bollinger Bands - volatility indicator with upper, middle, lower bands
-        Created by John Bollinger - shows price volatility and potential support/resistance
-        Middle Band = Simple Moving Average (typically 20 periods)
-        Upper Band = SMA + (2 * Standard Deviation)
-        Lower Band = SMA - (2 * Standard Deviation)
-        
-        Trading signals:
-        - Price touching upper band = potential overbought (sell signal)
-        - Price touching lower band = potential oversold (buy signal)
-        - Band width indicates volatility (narrow = low volatility, wide = high volatility)
-    */
+    // Professional technical indicators used by institutional traders
     function calculateBollingerBands(prices, period = 20, stdDev = 2) {
       if (prices.length < period) return { upper: 0, middle: 0, lower: 0 };
-        
-        // Middle band = Simple Moving Average
       const sma = calculateSMA(prices, period);
       const slice = prices.slice(-period);
-        
-        // Calculate standard deviation of prices
       const variance = slice.reduce((acc, price) => acc + Math.pow(price - sma, 2), 0) / period;
       const std = Math.sqrt(variance);
-        
       return {
-            upper: sma + (stdDev * std),  // Upper band = SMA + (stdDev * std)
-            middle: sma,                   // Middle band = SMA
-            lower: sma - (stdDev * std)   // Lower band = SMA - (stdDev * std)
-        };
+        upper: sma + (stdDev * std),
+        middle: sma,
+        lower: sma - (stdDev * std)
+      };
     }
 
-    /* 
-        Stochastic Oscillator - momentum indicator comparing closing price to price range
-        Developed by George Lane - measures momentum by comparing closing price to price range
-        %K = ((Current Close - Lowest Low) / (Highest High - Lowest Low)) * 100
-        %D = Simple Moving Average of %K (typically 3 periods)
-        
-        Trading signals:
-        - %K > 80 = overbought (potential sell signal)
-        - %K < 20 = oversold (potential buy signal)
-        - %K crossing above %D = bullish momentum
-        - %K crossing below %D = bearish momentum
-    */
     function calculateStochastic(prices, kPeriod = 14, dPeriod = 3) {
       if (prices.length < kPeriod) return { k: 50, d: 50 };
-        
-        // Current %K calculation
       const slice = prices.slice(-kPeriod);
-        const high = Math.max(...slice);  // Highest price in period
-        const low = Math.min(...slice);   // Lowest price in period
-        const current = prices[prices.length - 1]; // Current price
-        const k = ((current - low) / (high - low)) * 100; // %K formula
-        
-        // Calculate %D (smoothed %K)
+      const high = Math.max(...slice);
+      const low = Math.min(...slice);
+      const current = prices[prices.length - 1];
+      const k = ((current - low) / (high - low)) * 100;
+      
+      // Simple D calculation (3-period SMA of K)
       const kValues = [];
       for (let i = kPeriod - 1; i < prices.length; i++) {
         const periodSlice = prices.slice(i - kPeriod + 1, i + 1);
@@ -1422,427 +527,110 @@
         const periodK = ((prices[i] - periodLow) / (periodHigh - periodLow)) * 100;
         kValues.push(periodK);
       }
-        const d = calculateSMA(kValues, dPeriod); // %D = SMA of %K
-        
+      const d = calculateSMA(kValues, dPeriod);
       return { k, d };
     }
 
-    /* 
-        Williams %R - momentum oscillator similar to Stochastic
-        Created by Larry Williams - measures momentum on a scale of -100 to 0
-        Formula: ((Highest High - Current Close) / (Highest High - Lowest Low)) * -100
-        
-        Trading signals:
-        - Values above -20 = overbought (potential sell signal)
-        - Values below -80 = oversold (potential buy signal)
-        - Similar to Stochastic but inverted scale
-    */
     function calculateWilliamsR(prices, period = 14) {
       if (prices.length < period) return 0;
-        
       const slice = prices.slice(-period);
-        const high = Math.max(...slice);  // Highest price in period
-        const low = Math.min(...slice);   // Lowest price in period
-        const current = prices[prices.length - 1]; // Current price
-        
-        // Williams %R formula: ((Highest High - Current Close) / (Highest High - Lowest Low)) * -100
+      const high = Math.max(...slice);
+      const low = Math.min(...slice);
+      const current = prices[prices.length - 1];
       return ((high - current) / (high - low)) * -100;
     }
 
-    /* 
-        Average True Range (ATR) - measures market volatility
-        Created by J. Welles Wilder - shows how much a stock moves on average
-        True Range = maximum of:
-        1. High - Low (current period)
-        2. |High - Previous Close| (gap up)
-        3. |Low - Previous Close| (gap down)
-        
-        ATR = Simple Moving Average of True Range
-        Used for:
-        - Setting stop-loss levels
-        - Position sizing based on volatility
-        - Risk management
-    */
     function calculateATR(prices, period = 14) {
       if (prices.length < period + 1) return 0;
-        
       const trueRanges = [];
-        // Calculate True Range for each period
       for (let i = 1; i < prices.length; i++) {
         const high = prices[i];
         const low = prices[i - 1];
         const prevClose = prices[i - 1];
-            
-            // True Range = max of:
-            // 1. High - Low
-            // 2. |High - Previous Close|
-            // 3. |Low - Previous Close|
-            const tr = Math.max(
-                high - low, 
-                Math.abs(high - prevClose), 
-                Math.abs(low - prevClose)
-            );
+        const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
         trueRanges.push(tr);
       }
-        
-        // ATR = Simple Moving Average of True Range
       return calculateSMA(trueRanges.slice(-period), period);
     }
 
-    async function fetchAlphaVantageIndicators(symbol) {
-      try {
-        const [rsiData, macdData, sma20Data, sma50Data] = await Promise.all([
-          fetchAlphaVantageTechnicalIndicator(symbol, 'RSI', 'daily', 14),
-          fetchAlphaVantageTechnicalIndicator(symbol, 'MACD', 'daily'),
-          fetchAlphaVantageTechnicalIndicator(symbol, 'SMA', 'daily', 20),
-          fetchAlphaVantageTechnicalIndicator(symbol, 'SMA', 'daily', 50)
-        ]);
-        
-        return {
-          rsi: rsiData['Technical Analysis: RSI'],
-          macd: macdData['Technical Analysis: MACD'],
-          sma20: sma20Data['Technical Analysis: SMA'],
-          sma50: sma50Data['Technical Analysis: SMA']
-        };
-      } catch (error) {
-        console.log('Alpha Vantage indicators failed, using calculated values:', error.message);
-        return null;
-      }
-    }
-
-    /* ===== STOCKSEER API FUNCTIONS ===== */
-    
-    /* 
-        Display ML model performance metrics in the sidebar
-        Shows model accuracy, R² score, MSE, and confidence level
-    */
-    function displayMLModelPerformance(predictionResult) {
-      if (!predictionResult || !predictionResult.success) {
-        // Hide ML model card if no data
-        document.getElementById('mlModelCard').style.display = 'none';
-        document.getElementById('predictionConfidenceCard').style.display = 'none';
-        return;
-      }
-      
-      // Show ML model card
-      document.getElementById('mlModelCard').style.display = 'block';
-      document.getElementById('predictionConfidenceCard').style.display = 'block';
-      
-      // Update model information
-      document.getElementById('mlModelName').textContent = predictionResult.model || 'Unknown';
-      document.getElementById('mlAccuracy').textContent = predictionResult.accuracy ? 
-        `${Math.round(predictionResult.accuracy * 100)}%` : '—';
-      document.getElementById('mlR2Score').textContent = predictionResult.r2_score ? 
-        predictionResult.r2_score.toFixed(3) : '—';
-      document.getElementById('mlMSE').textContent = predictionResult.mse ? 
-        predictionResult.mse.toFixed(2) : '—';
-      
-      // Update confidence bar
-      const confidence = Math.round((predictionResult.accuracy || 0.7) * 100);
-      const confidenceBar = document.getElementById('confidenceBar');
-      const confidenceText = document.getElementById('confidenceText');
-      
-      confidenceBar.style.width = `${confidence}%`;
-      
-      // Set confidence text based on accuracy level
-      if (confidence >= 80) {
-        confidenceText.textContent = `High Confidence (${confidence}%) - Very Reliable Predictions`;
-        confidenceText.style.color = '#1f9d57';
-      } else if (confidence >= 60) {
-        confidenceText.textContent = `Medium Confidence (${confidence}%) - Reasonable Predictions`;
-        confidenceText.style.color = '#f39c12';
-      } else {
-        confidenceText.textContent = `Low Confidence (${confidence}%) - Use with Caution`;
-        confidenceText.style.color = '#d64545';
-      }
-    }
-    
-    /* 
-        Fetch ML-based stock prediction from StockSeer API
-        Uses multiple machine learning algorithms for accurate predictions
-        Parameters:
-        - symbol: Stock symbol (e.g., 'AAPL')
-        - days: Number of days to predict (1, 7, 30)
-        - model: ML model to use ('random_forest', 'extra_trees', 'linear_regression', 'kneighbors', 'lstm')
-    */
-    async function fetchStockSeerPrediction(symbol, days = 30, model = 'random_forest') {
-      try {
-        // StockSeer API endpoint for predictions
-        const apiUrl = 'https://stockseer-api.vercel.app/predict';
-        
-        const requestBody = {
-          symbol: symbol.toUpperCase(),
-          days: days,
-          model: model
-        };
-        
-        console.log('Fetching StockSeer prediction:', requestBody);
-        
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-          throw new Error(`StockSeer API error: ${response.status} ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('StockSeer API response:', data);
-        
-        return {
-          success: true,
-          symbol: data.symbol || symbol,
-          predictions: data.predictions || [],
-          model: data.model || model,
-          accuracy: data.accuracy || null,
-          mse: data.mse || null,
-          r2_score: data.r2_score || null,
-          provider: 'stockseer_ml'
-        };
-        
-      } catch (error) {
-        console.error('StockSeer API error:', error);
-        return {
-          success: false,
-          error: error.message,
-          provider: 'stockseer_ml'
-        };
-      }
-    }
-    
-    /* 
-        Generate prediction path using StockSeer ML API
-        Creates a smooth prediction curve based on ML model output
-    */
-    async function generateMLPredictionPath(quote, history, predictionDays = selectedPredictionDays) {
-      try {
-        // Map prediction days to StockSeer API format
-        const apiDays = Math.min(predictionDays, 30); // StockSeer API max is 30 days
-        
-        // Try the selected ML model first, then fallback to others
-        const models = [selectedMLModel, 'random_forest', 'extra_trees', 'lstm', 'linear_regression', 'kneighbors'];
-        let predictionResult = null;
-        
-        for (const model of models) {
-          predictionResult = await fetchStockSeerPrediction(quote.symbol, apiDays, model);
-          if (predictionResult.success) {
-            console.log(`Using ${model} model for prediction`);
-            break;
-          }
-        }
-        
-        if (!predictionResult || !predictionResult.success) {
-          console.warn('All ML models failed, falling back to technical analysis');
-          // Hide ML model cards when using fallback
-          document.getElementById('mlModelCard').style.display = 'none';
-          document.getElementById('predictionConfidenceCard').style.display = 'none';
-          return generatePredictionPath(quote, history, predictionDays);
-        }
-        
-        // Display ML model performance metrics
-        displayMLModelPerformance(predictionResult);
-        
-        // Log detailed prediction data for debugging
-        console.log('📊 StockSeer API Prediction Details:');
-        console.log('  Model:', predictionResult.model);
-        console.log('  Accuracy:', predictionResult.accuracy);
-        console.log('  R² Score:', predictionResult.r2_score);
-        console.log('  MSE:', predictionResult.mse);
-        console.log('  Predictions:', predictionResult.predictions);
-        console.log('  Prediction Count:', predictionResult.predictions?.length || 0);
-        
-        const predictions = predictionResult.predictions;
-        if (!predictions || predictions.length === 0) {
-          throw new Error('No predictions returned from StockSeer API');
-        }
-        
-        // Convert ML predictions to chart data format
-        const out = [];
-        const startDate = new Date();
-        
-        for (let i = 0; i < Math.min(predictions.length, predictionDays); i++) {
-          const predictionDate = new Date(startDate);
-          predictionDate.setDate(startDate.getDate() + i + 1);
-          
-          out.push({
-            date: predictionDate,
-            price: predictions[i]
-          });
-        }
-        
-        // Calculate prediction summary
-        const lastPrice = history[history.length - 1].price;
-        const finalPrice = out[out.length - 1].price;
-        const change = finalPrice - lastPrice;
-        const changePercent = (change / lastPrice) * 100;
-        
-        // Determine direction and confidence based on ML accuracy and prediction strength
-        const direction = change > 0 ? 'bullish' : 'bearish';
-        const baseAccuracy = predictionResult.accuracy || 0.7;
-        
-        // Calculate confidence based on ML accuracy and prediction magnitude
-        const predictionStrength = Math.abs(changePercent) / 100; // Normalize to 0-1
-        const confidence = Math.min(Math.round((baseAccuracy * 0.7 + predictionStrength * 0.3) * 100), 95);
-        
-        // Calculate bullish ratio based on ML prediction strength and accuracy
-        let bullishRatio;
-        if (change > 0) {
-          // Bullish prediction - stronger if more positive and more accurate
-          bullishRatio = 0.5 + (Math.abs(changePercent) / 400) + (baseAccuracy - 0.5) * 0.3;
-        } else {
-          // Bearish prediction - stronger if more negative and more accurate
-          bullishRatio = 0.5 - (Math.abs(changePercent) / 400) - (baseAccuracy - 0.5) * 0.3;
-        }
-        
-        // Ensure bullishRatio stays within bounds
-        bullishRatio = Math.max(0.1, Math.min(0.9, bullishRatio));
-        
-        return {
-          pred: {
-            direction: direction,
-            confidence: confidence,
-            bullishRatio: Math.max(0, Math.min(1, bullishRatio)),
-            indicators: {
-              model: predictionResult.model,
-              accuracy: predictionResult.accuracy,
-              mse: predictionResult.mse,
-              r2_score: predictionResult.r2_score
-            }
-          },
-          data: out,
-          summary: {
-            period: `${predictionDays} day${predictionDays > 1 ? 's' : ''}`,
-            change: change,
-            changePercent: changePercent,
-            confidence: confidence,
-            targetPrice: finalPrice,
-            startDate: startDate,
-            endDate: out[out.length - 1].date,
-            model: predictionResult.model,
-            accuracy: predictionResult.accuracy
-          }
-        };
-        
-      } catch (error) {
-        console.error('ML prediction generation error:', error);
-        // Fallback to technical analysis
-        return generatePredictionPath(quote, history, predictionDays);
-      }
-    }
-
-    /* ===== STOCK PREDICTION ALGORITHM ===== */
-    // Advanced multi-factor prediction algorithm combining technical analysis indicators
     function generatePrediction(quote, history) {
-        try {
       const prices = history.map(d => d.price);
-            if (prices.length === 0) {
-                return { direction: 'bullish', confidence: 50, bullishRatio: 0.5, indicators: {} };
-            }
-            
-            // Calculate all technical indicators
-            const rsi = calculateRSI(prices);                    // RSI (momentum)
-            const macd = calculateMACD(prices);                  // MACD (trend)
-            const sma20 = calculateSMA(prices, 20);              // 20-day SMA
-            const sma50 = calculateSMA(prices, 50);              // 50-day SMA
-            const sma5 = calculateSMA(prices, 5);                // 5-day SMA (short-term)
-            const sma10 = calculateSMA(prices, 10);              // 10-day SMA (short-term)
-            const current = prices[prices.length - 1];           // Current price
+            const rsi = calculateRSI(prices);
+            const macd = calculateMACD(prices);
+      const sma20 = calculateSMA(prices, 20);
+      const sma50 = calculateSMA(prices, 50);
+      const sma5 = calculateSMA(prices, 5);
+      const sma10 = calculateSMA(prices, 10);
+      const current = prices[prices.length - 1];
 
-            // Advanced professional indicators
-            const bb = calculateBollingerBands(prices);          // Bollinger Bands
-            const stoch = calculateStochastic(prices);           // Stochastic Oscillator
-            const williamsR = calculateWilliamsR(prices);        // Williams %R
-            const atr = calculateATR(prices);                    // Average True Range
+      // Professional indicators
+      const bb = calculateBollingerBands(prices);
+      const stoch = calculateStochastic(prices);
+      const williamsR = calculateWilliamsR(prices);
+      const atr = calculateATR(prices);
 
-            // Scoring system: accumulate bullish and bearish points
       let bull = 0, bear = 0;
 
-            /* ===== TECHNICAL INDICATOR ANALYSIS ===== */
-            
-            // RSI Analysis - momentum oscillator (0-100)
-            if (rsi < 30) bull += 2;        // Oversold territory - strong buy signal
-            else if (rsi > 70) bear += 2;   // Overbought territory - strong sell signal
-            else if (rsi < 45) bull += 1;   // Weak oversold - buy signal
-            else if (rsi > 55) bear += 1;   // Weak overbought - sell signal
-            else if (rsi >= 50) bull += 0.5; // Above 50 - slightly bullish
-            else bull += 0.3;               // Below 50 but not oversold - neutral bullish
+      // RSI Analysis (Professional levels)
+      if (rsi < 25) bull += 3; // Oversold
+      else if (rsi > 75) bear += 3; // Overbought
+      else if (rsi < 40) bull += 1; // Weak oversold
+      else if (rsi > 60) bear += 1; // Weak overbought
+      else if (rsi > 50) bull += 0.5; // Slight bullish
+      else bear += 0.5; // Slight bearish
 
-            // MACD Analysis - trend following indicator
-            if (macd.macd > macd.signal) bull += 1; else bear += 1; // MACD line vs Signal line
-            if (macd.histogram > 0) bull += 0.5; else bear += 0.5; // Histogram momentum
+      // MACD Analysis
+      if (macd.macd > macd.signal) bull += 1; else bear += 1;
+      if (macd.histogram > 0) bull += 0.5; else bear += 0.5;
 
-            // Moving Average Analysis - trend identification
-            if (current > sma20 && sma20 > sma50) bull += 2.5;      // Strong uptrend
-            else if (current < sma20 && sma20 < sma50) bear += 2.5; // Strong downtrend
-            else if (current > sma20) bull += 1.5;                  // Above short-term MA - bullish
-            else if (current > sma50) bull += 0.5;                  // Above long-term MA - slightly bullish
-            else bear += 1;                                          // Below both MAs - bearish
+      // Moving Average Analysis (Professional)
+      if (current > sma20 && sma20 > sma50) bull += 2; // Uptrend
+      else if (current < sma20 && sma20 < sma50) bear += 2; // Downtrend
+      else if (current > sma20) bull += 1; // Above short-term MA
+      else bear += 1; // Below short-term MA
 
-            // Short-term momentum analysis
-            if (sma5 > sma10) bull += 1; else bear += 1; // 5-day vs 10-day SMA
+      // Short-term momentum
+      if (sma5 > sma10) bull += 1; else bear += 1;
 
-            // Bollinger Bands Analysis - volatility-based support/resistance
-            if (current < bb.lower) bull += 2;      // Price below lower band - oversold bounce expected
-            else if (current > bb.upper) bear += 2; // Price above upper band - overbought rejection expected
-            else if (current > bb.middle) bull += 1; // Above middle band - bullish bias
-            else bull += 0.3;                       // Below middle but not oversold - neutral bullish
+      // Bollinger Bands Analysis
+      if (current < bb.lower) bull += 2; // Oversold bounce
+      else if (current > bb.upper) bear += 2; // Overbought rejection
+      else if (current > bb.middle) bull += 0.5; // Above middle
+      else bear += 0.5; // Below middle
 
-            // Stochastic Analysis - momentum oscillator
-            if (stoch.k < 20 && stoch.d < 20) bull += 1.5;    // Both %K and %D oversold - strong buy
-            else if (stoch.k > 80 && stoch.d > 80) bear += 1.5; // Both overbought - strong sell
-            else if (stoch.k > stoch.d) bull += 0.8;          // %K above %D - bullish momentum
-            else if (stoch.k > 50) bull += 0.3;               // Above 50 - slightly bullish
-            else bear += 0.5;                                 // Below 50 and K below D - bearish
+      // Stochastic Analysis
+      if (stoch.k < 20 && stoch.d < 20) bull += 1; // Oversold
+      else if (stoch.k > 80 && stoch.d > 80) bear += 1; // Overbought
+      else if (stoch.k > stoch.d) bull += 0.5; // K above D
+      else bear += 0.5; // K below D
 
-            // Williams %R Analysis - momentum oscillator (-100 to 0)
-            if (williamsR < -80) bull += 1.2;    // Oversold territory - strong buy signal
-            else if (williamsR > -20) bear += 1.2; // Overbought territory - strong sell signal
-            else if (williamsR < -50) bull += 0.5; // Below -50 - bullish momentum
-            else bear += 0.3;                     // Above -50 - slightly bearish
+      // Williams %R Analysis
+      if (williamsR < -80) bull += 1; // Oversold
+      else if (williamsR > -20) bear += 1; // Overbought
 
-            // Volume Analysis - price-volume relationship
-            if (quote.volume && prices.length >= 2) {
-                const avgVolume = 30_000_000; // Average daily volume assumption
+      // Volume Analysis (Professional)
+      if (quote.volume) {
+        const avgVolume = 30_000_000; // Average volume assumption
         const volumeRatio = quote.volume / avgVolume;
-                const priceChange = (current - prices[prices.length-2]) / prices[prices.length-2];
-                
-                if (volumeRatio > 2) { // High volume (2x average)
-                    if (priceChange > 0) bull += 1.5;      // High volume + price up = strong bullish
-                    else if (priceChange < -0.02) bear += 1.5; // High volume + significant price down = strong bearish
-                    else bull += 0.5;                      // High volume + small change = slightly bullish
-                } else if (volumeRatio > 1.5) { // Above average volume
-                    if (priceChange > 0) bull += 0.8;      // Above average volume + price up
-                    else bear += 0.5;                      // Above average volume + price down
-                } else if (volumeRatio > 1) { // Normal volume
-                    if (priceChange > 0) bull += 0.3;      // Normal volume + price up
-                    else bear += 0.2;                      // Normal volume + price down
-                }
-            }
+        if (volumeRatio > 2) { // High volume
+          if (current > prices[prices.length-2]) bull += 1.5; // Volume confirmation
+          else bear += 1.5;
+        } else if (volumeRatio > 1.5) {
+          if (current > prices[prices.length-2]) bull += 0.5;
+          else bear += 0.5;
+        }
+      }
 
-      // Price Momentum (Fixed - more balanced)
+      // Price Momentum (Professional)
       if (prices.length >= 10) {
         const shortMomentum = (current - prices[prices.length-5]) / prices[prices.length-5];
         const longMomentum = (current - prices[prices.length-10]) / prices[prices.length-10];
         
-        // Short-term momentum
-        if (shortMomentum > 0.05) bull += 1.5; // Very strong short-term momentum
-        else if (shortMomentum > 0.02) bull += 1; // Strong short-term momentum
-        else if (shortMomentum > 0) bull += 0.5; // Positive short-term momentum
-        else if (shortMomentum < -0.05) bear += 1.5; // Very negative short-term momentum
-        else if (shortMomentum < -0.02) bear += 1; // Negative short-term momentum
-        else bear += 0.3; // Slightly negative short-term momentum
+        if (shortMomentum > 0.03) bull += 1; // Strong short-term momentum
+        else if (shortMomentum < -0.03) bear += 1;
         
-        // Long-term momentum
-        if (longMomentum > 0.08) bull += 1.5; // Very strong long-term momentum
-        else if (longMomentum > 0.03) bull += 1; // Strong long-term momentum
-        else if (longMomentum > 0) bull += 0.5; // Positive long-term momentum
-        else if (longMomentum < -0.08) bear += 1.5; // Very negative long-term momentum
-        else if (longMomentum < -0.03) bear += 1; // Negative long-term momentum
-        else bear += 0.3; // Slightly negative long-term momentum
+        if (longMomentum > 0.05) bull += 1; // Strong long-term momentum
+        else if (longMomentum < -0.05) bear += 1;
       }
 
       // Volatility Analysis (Professional)
@@ -1864,493 +652,204 @@
         }
       }
 
-      // Fundamental Analysis (Fixed - more balanced)
+      // Fundamental Analysis (Professional)
       if (quote.pe) {
-        if (quote.pe < 12) bull += 1.5; // Very undervalued
-        else if (quote.pe < 18) bull += 1; // Undervalued
+        if (quote.pe < 15) bull += 1; // Undervalued
+        else if (quote.pe > 30) bear += 1; // Overvalued
         else if (quote.pe < 25) bull += 0.5; // Reasonable valuation
-        else if (quote.pe < 35) bear += 0.5; // Slightly expensive
-        else bear += 1; // Overvalued
+        else bear += 0.5; // Expensive
       }
-      
-            // Market Sentiment Factor - adds realistic market bias
-            const marketSentiment = 0.2; // Slight bullish bias for current market conditions
-            bull += marketSentiment; // Add slight bullish bias to all stocks
 
-            // Market Cap Analysis - adjust confidence based on company size
+      // Market Cap Analysis
       if (quote.marketCap) {
-                if (quote.marketCap > 1e12) { // Large cap ($1T+) - more stable, higher confidence
+        if (quote.marketCap > 1e12) { // Large cap - more stable
           bull *= 1.1;
           bear *= 1.1;
-                } else if (quote.marketCap < 1e9) { // Small cap (<$1B) - more volatile, lower confidence
+        } else if (quote.marketCap < 1e9) { // Small cap - more volatile
           bull *= 0.9;
           bear *= 0.9;
         }
       }
 
-            /* ===== FINAL PREDICTION CALCULATION ===== */
-            
-            // Calculate final bullish/bearish ratio
       const total = bull + bear;
       const ratio = total > 0 ? bull / total : 0.5;
-      
-      // Debug logging for market mood calculation
-      console.log('Market Mood Calculation:', {
-        bull: bull,
-        bear: bear,
-        total: total,
-        ratio: ratio,
-        direction: ratio > 0.5 ? 'bullish' : 'bearish'
-      });
-            
-            // Determine direction and confidence
       const direction = ratio > 0.5 ? 'bullish' : 'bearish';
       const confidence = Math.round(Math.min(Math.abs(ratio - 0.5) * 2, 0.95) * 100);
             
-            // Return comprehensive prediction result
             return {
-                direction,           // 'bullish' or 'bearish'
-                confidence,          // 0-100 confidence percentage
-                bullishRatio: ratio, // 0-1 ratio (0.5 = neutral)
-                indicators: {        // All calculated technical indicators
+        direction, 
+        confidence, 
+        bullishRatio: ratio,
+        indicators: {
           rsi, macd, sma20, sma50, bb, stoch, williamsR, atr, volatility: vol
         }
-            };
-      } catch (error) {
-        console.error('Prediction generation error:', error);
-        return { 
-          direction: 'bullish', 
-          confidence: 50, 
-          bullishRatio: 0.5, 
-          indicators: {} 
-        };
-      }
+      };
     }
 
-    function generatePredictionPath(quote, history, predictionDays = selectedPredictionDays) {
-      try {
-      const pred = generatePrediction(quote, history);
-        if (!history || history.length === 0) {
-          return { 
-            pred: { direction: 'bullish', confidence: 50, bullishRatio: 0.5 }, 
-            data: [], 
-            summary: { period: '0 days', change: 0, changePercent: 0, confidence: 50, targetPrice: quote.price }
-          };
-        }
-        
-      const last = history[history.length - 1].price;
+    // Simple linear regression slope of last N prices (normalized by price)
+    function linearRegressionSlope(values, window = 20) {
+      if (!values || values.length < 2) return 0;
+      const n = Math.min(window, values.length);
+      const slice = values.slice(-n);
+      const meanX = (n - 1) / 2;
+      const meanY = slice.reduce((a,b)=>a+b,0) / n;
+      let num = 0, den = 0;
+      for (let i = 0; i < n; i++) { num += (i - meanX) * (slice[i] - meanY); den += (i - meanX) * (i - meanX); }
+      const slope = den === 0 ? 0 : num / den; // price change per step
+      const last = slice[slice.length - 1] || 1;
+      return last ? slope / last : 0; // normalize to percent per step
+    }
+
+    function generatePredictionPath(quote, history, days = selectedPredictionDays) {
+      // Recompute indicator-driven signal so direction is correct and stock-specific
+      const prices = history.map(d => d.price);
+      const last = prices[prices.length - 1];
+      const live = Number(quote?.price) > 0 ? Number(quote.price) : last;
+      const rsi = calculateRSI(prices, 14);
+      const macd = calculateMACD(prices); // { macd, signal, histogram }
+      const sma20 = calculateSMA(prices, 20);
+      const sma50 = calculateSMA(prices, 50);
+      const bb = calculateBollingerBands(prices, 20, 2);
+      const vol = Math.max(0.001, Math.min(0.12, calculateVolatility(prices)));
+      const slope = linearRegressionSlope(prices, 20); // normalized per step
+
+      // Build a composite signal in [-1, 1]
+      let signal = 0;
+      // RSI distance from neutral (50)
+      signal += ((rsi - 50) / 50) * 0.35;
+      // MACD histogram sign and strength (bounded)
+      const macdStrength = Math.max(-1, Math.min(1, (macd.histogram || 0) / Math.max(1e-6, Math.abs(macd.signal) + 1e-6)));
+      signal += macdStrength * 0.25;
+      // Trend from MA alignment and gap
+      const maGap = (sma20 && sma50) ? (sma20 - sma50) / Math.max(1e-6, sma50) : 0;
+      signal += Math.max(-0.4, Math.min(0.4, maGap)) * 0.25;
+      // Price vs BB middle
+      const bbMiddle = bb.middle || sma20 || last;
+      const midGap = (last - bbMiddle) / Math.max(1e-6, bbMiddle);
+      signal += Math.max(-0.3, Math.min(0.3, midGap)) * 0.15;
+      // Recent momentum (slope)
+      signal += Math.max(-0.4, Math.min(0.4, slope * 15)) * 0.2;
+
+      // Clamp signal
+      signal = Math.max(-1, Math.min(1, signal));
+
+      // Confidence increases when indicators agree and volatility is moderate
+      const agreement = (
+        (rsi > 55 ? 1 : rsi < 45 ? 1 : 0) +
+        (macd.histogram > 0 ? 1 : macd.histogram < 0 ? 1 : 0) +
+        (sma20 > sma50 ? 1 : sma20 < sma50 ? 1 : 0) +
+        (last > bbMiddle ? 1 : last < bbMiddle ? 1 : 0)
+      ) / 4;
+      const baseConf = 0.5 + 0.4 * Math.abs(signal) * (0.6 + 0.4 * agreement);
+      const conf = Math.max(0.3, Math.min(0.95, baseConf * (1 - Math.min(vol * 6, 0.5))));
+
+      // Symbol-specific bias to avoid identical shapes across symbols
+      const symbolKey = `${quote.symbol || 'SYM'}|${quote.exchangeName || ''}`;
+      const rng = createSeededRng(symbolKey);
+      const symbolBias = (rng() - 0.5) * 0.001; // keep tilt tiny to avoid upward bias
+
+      // Recent return statistics to anchor 30-day drift uniquely per stock
+      const rets = [];
+      for (let i = 1; i < prices.length; i++) {
+        const prev = prices[i-1]; const curr = prices[i];
+        if (prev > 0 && curr > 0) rets.push((curr - prev) / prev);
+      }
+      const retMean = rets.length ? rets.reduce((a,b)=>a+b,0)/rets.length : 0;
+      const retStd = rets.length ? Math.sqrt(rets.reduce((a,r)=>a+(r-retMean)*(r-retMean),0)/rets.length) : vol;
+
+      // ECONOMETRIC core: blend realized mean return, indicator signal, and regime filters
+      // 1) Momentum vs mean-reversion signals
+      const isDownRegime = (slope < 0) && (macd.histogram < 0) && (sma20 < sma50) && (last < bbMiddle);
+      const isUpRegime   = (slope > 0) && (macd.histogram > 0) && (sma20 > sma50) && (last > bbMiddle);
+      // 2) Overbought/oversold mean-reversion pressure
+      const overbought = (rsi > 65) || (last > (bb.upper || Infinity));
+      const oversold   = (rsi < 35) || (last < (bb.lower || 0));
+
+      // Baseline drift from realized mean (arith approx of daily log-mean)
+      const muArith = retMean; // small returns ~ arithmetic
+      let driftPerDay = (
+        muArith * 0.6
+        + signal * 0.0045 * (0.5 + 0.8 * conf)
+        + symbolBias
+      ) * (1 - Math.min(vol * 7, 0.55));
+
+      // Regime gating: disallow positive drift in confirmed downtrend; vice versa for strong uptrend allow more
+      if (isDownRegime && driftPerDay > 0) driftPerDay = Math.min(driftPerDay, 0.0002);
+      if (isUpRegime) driftPerDay = driftPerDay + Math.abs(driftPerDay) * 0.2;
+
+      // Stronger mean reversion at extremes
+      if (overbought) driftPerDay -= 0.003 * (0.5 + conf); // push down when overbought
+      if (oversold)   driftPerDay += 0.003 * (0.5 + conf); // push up when oversold
+
+      // Noise model proportional to volatility, gently decays across horizon
+      const baseNoise = Math.min(0.014, 0.35 * Math.max(vol, retStd)); // cap noise amplitude
+
       const out = [];
-      
-      // Adjust base drift based on prediction timeframe (FIXED - more realistic)
-      let baseDrift, noiseFactor;
-      
-      // Calculate bullish strength properly - preserve direction and scale appropriately
-      const bullishStrength = Math.abs(pred.bullishRatio - 0.5) * 2; // 0 to 1
-      const isBullish = pred.bullishRatio > 0.5;
-      
-      // Add minimum confidence threshold - if confidence is too low, use neutral prediction
-      const minConfidence = 30; // Minimum 30% confidence required
-      const effectiveBullishRatio = pred.confidence >= minConfidence ? pred.bullishRatio : 0.5;
-      const effectiveIsBullish = effectiveBullishRatio > 0.5;
-      
-      // Debug logging for prediction calculation
-      console.log('Prediction Debug:', {
-        bullishRatio: pred.bullishRatio,
-        direction: pred.direction,
-        confidence: pred.confidence,
-        bullishStrength: bullishStrength,
-        isBullish: isBullish,
-        effectiveBullishRatio: effectiveBullishRatio,
-        effectiveIsBullish: effectiveIsBullish,
-        predictionDays: predictionDays,
-        baseDrift: baseDrift
-      });
-      
-      if (predictionDays === 1) {
-        baseDrift = effectiveIsBullish ? 0.015 * bullishStrength : -0.015 * bullishStrength; // 1-day prediction
-        noiseFactor = 0.002;
-      } else if (predictionDays === 7) {
-        baseDrift = effectiveIsBullish ? 0.004 * bullishStrength : -0.004 * bullishStrength; // 1-week prediction
-        noiseFactor = 0.0015;
-      } else {
-        // 30-day prediction - use stronger base drift and less noise
-        baseDrift = effectiveIsBullish ? 0.008 * bullishStrength : -0.008 * bullishStrength; // Increased from 0.0025
-        noiseFactor = 0.0008; // Reduced noise for longer predictions
+      // Start path from the live price so predictions visually align with real-time
+      let price = live;
+      for (let i = 1; i <= days; i++) {
+        const t = i / days; // 0..1
+        const easing = 0.35 * t + 0.65 * t * t; // smoother build-up
+        // symbol-phased seasonal components -> distinct shapes per symbol
+        const phase1 = (rng() * Math.PI * 2);
+        const phase2 = (rng() * Math.PI * 2);
+        const seasonal = Math.sin(i / 6 + phase1) * 0.0018 + Math.sin(i / 13 + phase2) * 0.0011;
+        // Skew noise slightly with regime: more downside wiggle in downtrends
+        const rand = (rng() - 0.5) * 2;
+        const skew = isDownRegime ? -0.3 : (isUpRegime ? 0.15 : 0);
+        const noise = (rand + skew) * baseNoise * (1 - 0.45 * t);
+        const dailyReturn = driftPerDay * easing + seasonal + noise;
+        price = Math.max(live * 0.7, price * (1 + dailyReturn));
+        out.push({ date: new Date(Date.now() + i * 86400000), price });
       }
-      
-      for (let i = 1; i <= predictionDays; i++) {
-        // Use constant drift instead of scaling - this was causing the issue
-        const drift = baseDrift; // Remove the scaling that was causing problems
-        
-        // Add some realistic market behavior
-        let noise = 0;
-        if (predictionDays === 1) {
-          // For 1-day, add more random noise
-          noise = (Math.random() - 0.5) * noiseFactor * 2;
-        } else if (predictionDays === 7) {
-          // For 1-week, add moderate noise
-          noise = (Math.sin(i/2) + Math.sin(i/5)) * noiseFactor;
-        } else {
-          // For 30-day, add very smooth, long-term trends
-          noise = (Math.sin(i/10) + Math.sin(i/20)) * noiseFactor;
-        }
-        
-        // Calculate next price with proper bounds
-        const next = Math.max(last * (1 + drift + noise), last * 0.5); // Allow up to 50% drop
-        out.push({ date: new Date(Date.now() + i*86400000), price: next });
-      }
-      
-      // Calculate prediction summary
-      const finalPrice = out[out.length - 1].price;
-      const change = finalPrice - last;
-      const changePercent = (change / last) * 100;
-      
-        return { 
-          pred, 
-          data: out, 
-          summary: {
-            period: `${predictionDays} day${predictionDays > 1 ? 's' : ''}`,
-            change: change,
-            changePercent: changePercent,
-            confidence: pred.confidence,
-            targetPrice: finalPrice,
-            startDate: new Date(),
-            endDate: new Date(Date.now() + predictionDays * 86400000)
-          }
-        };
-      } catch (error) {
-        console.error('Prediction path generation error:', error);
-        return { 
-          pred: { direction: 'bullish', confidence: 50, bullishRatio: 0.5 }, 
-          data: [], 
-          summary: { 
-            period: `${predictionDays} day${predictionDays > 1 ? 's' : ''}`, 
-            change: 0, 
-            changePercent: 0, 
-            confidence: 50, 
-            targetPrice: quote.price 
-          }
-        };
-      }
+
+      // Provide an updated prediction summary consistent with our signal
+      // Determine direction vs live price to avoid mismatches
+      const direction = out[out.length - 1].price >= live ? 'bullish' : 'bearish';
+      const pred = {
+        direction,
+        // Sharpe-like boost/damp of confidence based on in-sample mean/vol
+        confidence: Math.round(
+          Math.min(0.95, Math.max(0.25, conf * (1 + Math.min(0.5, (retMean / (retStd + 1e-6)) )))) * 100
+        ),
+        bullishRatio: Math.max(0, Math.min(1, 0.5 + signal * 0.5)),
+        indicators: { rsi, macd, sma20, sma50, bb, volatility: vol }
+      };
+
+      return { pred, data: out };
     }
 
-    /* ===== CHART RENDERING FUNCTIONS ===== */
-    /* 
-        Chart.js Integration - Professional charting library for data visualization
-        Chart.js provides interactive, responsive charts with animations and tooltips
-        Features used:
-        - Line charts for price data
-        - Doughnut charts for market mood
-        - Responsive design
-        - Smooth animations
-        - Interactive tooltips
-    */
-    
-    /* 
-        Render historical price chart using Chart.js
-        Creates a line chart showing price movement over time
-        Includes smooth curves, area fill, and interactive tooltips
-    */
     function drawPriceChart(history) {
       const ctx = document.getElementById('priceChart').getContext('2d');
-        
-        // Destroy existing chart to prevent memory leaks
-        // Chart.js requires manual cleanup to avoid memory issues
       if (priceChart) priceChart.destroy();
-        
-        // Create new line chart with historical price data
       priceChart = new Chart(ctx, {
         type: 'line',
-            data: { 
-                labels: history.map(d => d.date.toLocaleDateString()), // X-axis: dates
-                datasets: [{ 
-                    label: 'Price', 
-                    data: history.map(d => d.price),                    // Y-axis: prices
-                    borderColor: '#5b7bd5',                           // Blue line color
-                    backgroundColor: 'rgba(91,123,213,0.12)',         // Light blue fill
-                    fill: true,                                       // Fill area under line
-                    borderWidth: 2,                                   // Line thickness
-                    tension: 0.35,                                    // Smooth curve
-                    pointRadius: 0                                     // Hide data points
-                }] 
-            },
-            options: { 
-                responsive: true,                                     // Chart adapts to container size
-                maintainAspectRatio: false,                          // Allow custom height
-                plugins: { legend: { display: false } },            // Hide legend for cleaner look
-                scales: { 
-                    x: { display: false },                          // Hide X-axis labels for cleaner look
-                    y: { 
-                        beginAtZero: false,                          // Start from actual data range (not zero)
-                        grid: { color: 'rgba(0,0,0,0.08)' }         // Light grid lines for reference
-                    } 
-                }, 
-                interaction: { intersect: false, mode: 'index' }     // Show closest data point on hover
-            }
-        });
+        data: { labels: history.map(d => d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })), datasets: [{ label: 'Price', data: history.map(d => d.price), borderColor: '#5b7bd5', backgroundColor: 'rgba(91,123,213,0.12)', fill: true, borderWidth: 2, tension: 0.35, pointRadius: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid: { color: 'rgba(0,0,0,0.05)' } }, y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,0.08)' } } }, interaction: { intersect: false, mode: 'index' } }
+      });
     }
 
-    function drawPredictionChart(path, summary) {
-      try {
+    function drawPredictionChart(path, pred) {
       const ctx = document.getElementById('predictionChart').getContext('2d');
       if (predictionChart) predictionChart.destroy();
-        
-        if (!path || path.length === 0 || !summary) {
-          console.error('Invalid prediction data for chart');
-          return;
-        }
-      
-      // Format labels based on prediction timeframe
-      let labels;
-      if (selectedPredictionDays === 1) {
-        labels = path.map((d, i) => {
-          const date = d.date;
-          return i === 0 ? 'Today' : `${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-        });
-      } else if (selectedPredictionDays === 7) {
-        labels = path.map((d, i) => {
-          const date = d.date;
-          return i === 0 ? 'Today' : `${date.getMonth() + 1}/${date.getDate()}`;
-        });
-      } else {
-        labels = path.map((d, i) => {
-          const date = d.date;
-          return i === 0 ? 'Today' : `${date.getMonth() + 1}/${date.getDate()}`;
-        });
-      }
-      
-      // Determine chart color and styling based on ML prediction strength and direction
-      const isBullish = summary.change > 0;
-      const predictionStrength = Math.abs(summary.changePercent);
-      const isStrongPrediction = predictionStrength > 5; // Strong if > 5% change
-      const isVeryStrongPrediction = predictionStrength > 15; // Very strong if > 15% change
-      
-      // Dynamic colors based on prediction strength
-      let borderColor, backgroundColor, pointColor;
-      
-      if (isVeryStrongPrediction) {
-        // Very strong predictions - use bright, saturated colors
-        borderColor = isBullish ? '#00ff88' : '#ff4444';
-        backgroundColor = isBullish ? 'rgba(0,255,136,0.15)' : 'rgba(255,68,68,0.15)';
-        pointColor = isBullish ? '#00ff88' : '#ff4444';
-      } else if (isStrongPrediction) {
-        // Strong predictions - use medium saturation
-        borderColor = isBullish ? '#22c55e' : '#ef4444';
-        backgroundColor = isBullish ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
-        pointColor = isBullish ? '#22c55e' : '#ef4444';
-      } else {
-        // Weak predictions - use muted colors
-        borderColor = isBullish ? '#1f9d57' : '#d64545';
-        backgroundColor = isBullish ? 'rgba(31,157,87,0.08)' : 'rgba(214,69,69,0.08)';
-        pointColor = isBullish ? '#1f9d57' : '#d64545';
-      }
-      
+      const isBullish = pred?.direction === 'bullish' || (path?.length ? path[path.length-1].price > path[0].price : false);
+      const lineColor = isBullish ? '#1f9d57' : '#d64545';
+      const fillColor = isBullish ? 'rgba(31,157,87,0.10)' : 'rgba(214,69,69,0.10)';
       predictionChart = new Chart(ctx, {
         type: 'line',
-        data: { 
-          labels: labels, 
-          datasets: [{ 
-            label: 'Predicted Price', 
-            data: path.map(d => d.price), 
-            borderColor: borderColor, 
-            backgroundColor: backgroundColor, 
-            fill: true, 
-            borderWidth: isVeryStrongPrediction ? 4 : isStrongPrediction ? 3 : 2, // Dynamic line width
-            tension: isVeryStrongPrediction ? 0.2 : isStrongPrediction ? 0.3 : 0.4, // Dynamic curve
-            pointRadius: selectedPredictionDays === 1 ? (isStrongPrediction ? 4 : 3) : 0,
-            pointHoverRadius: isStrongPrediction ? 7 : 5,
-            pointBackgroundColor: pointColor,
-            pointBorderColor: pointColor,
-            pointBorderWidth: isStrongPrediction ? 2 : 1,
-            borderDash: selectedPredictionDays === 1 ? [] : (isVeryStrongPrediction ? [] : [5,4]) // Solid line for very strong predictions
-          }] 
-        },
-        options: { 
-          responsive: true, 
-          maintainAspectRatio: false, 
-          plugins: { 
-            legend: { display: false },
-            tooltip: {
-              backgroundColor: isStrongPrediction ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.6)',
-              titleColor: '#ffffff',
-              bodyColor: '#ffffff',
-              borderColor: borderColor,
-              borderWidth: isStrongPrediction ? 2 : 1,
-              callbacks: {
-                title: function(context) {
-                  const dataIndex = context[0].dataIndex;
-                  const date = path[dataIndex].date;
-                  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-                },
-                label: function(context) {
-                  const change = context.parsed.y - path[0].price;
-                  const changePercent = ((change / path[0].price) * 100).toFixed(2);
-                  return `Predicted: ${formatCurrency(context.parsed.y)} (${changePercent >= 0 ? '+' : ''}${changePercent}%)`;
-                }
-              }
-            }
-          },
-          animation: {
-            duration: isStrongPrediction ? 1500 : 1000, // Longer animation for strong predictions
-            easing: 'easeInOutQuart',
-            animateScale: true,
-            animateRotate: false
-          }, 
-          scales: { 
-            x: { 
-              display: true,
-              grid: { color: 'rgba(0,0,0,0.08)' },
-              ticks: {
-                maxTicksLimit: selectedPredictionDays === 1 ? 8 : 10
-              }
-            }, 
-            y: { 
-              beginAtZero: false, 
-              grid: { color: 'rgba(0,0,0,0.08)' },
-              ticks: {
-                callback: function(value) {
-                  return formatCurrency(value);
-                }
-              }
-            } 
-          }, 
-          interaction: { intersect: false, mode: 'index' } 
-        }
+        data: { labels: path.map(d => d.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })), datasets: [{ label: 'Predicted', data: path.map(d => d.price), borderColor: lineColor, backgroundColor: fillColor, fill: true, borderWidth: 2, tension: 0.35, pointRadius: 0, borderDash: [5,4] }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: true, grid: { color: 'rgba(0,0,0,0.05)' } }, y: { beginAtZero: false, grid: { color: 'rgba(0,0,0,0.08)' } } }, interaction: { intersect: false, mode: 'index' } }
       });
-      } catch (error) {
-        console.error('Prediction chart drawing error:', error);
-      }
     }
 
     function updateMoodChart(pred) {
-      try {
       const ctx = document.getElementById('moodChart').getContext('2d');
       if (moodChart) moodChart.destroy();
-        
-        // Enhanced validation and fallback for market mood calculation
-        let bullishRatio = 0.5; // Default neutral (50/50)
-        
-        if (pred && typeof pred.bullishRatio === 'number' && !isNaN(pred.bullishRatio)) {
-          bullishRatio = pred.bullishRatio;
-        } else if (pred && pred.direction) {
-          // Fallback: use direction to estimate ratio
-          bullishRatio = pred.direction === 'bullish' ? 0.7 : 0.3;
-        } else {
-          console.warn('Invalid prediction data for mood chart, using neutral values');
-        }
-        
-        // Ensure ratio is between 0 and 1
-        bullishRatio = Math.max(0, Math.min(1, bullishRatio));
-        
-      const bull = Math.round(bullishRatio * 100);
+      const bull = Math.round(pred.bullishRatio * 100);
       const bear = 100 - bull;
-      
-            // Use original colors for mood chart
-            const bullishColor = '#1f9d57'; // Original green
-            const bearishColor = '#d64545'; // Original red
-      
-      // Create doughnut chart with original styling
-      moodChart = new Chart(ctx, { 
-        type: 'doughnut', 
-        data: { 
-          labels: ['Bullish','Bearish'], 
-          datasets: [{ 
-            data: [bull, bear], 
-            backgroundColor: [bullishColor, bearishColor], 
-            borderWidth: 0,
-            hoverOffset: 4
-          }] 
-        }, 
-        options: { 
-          plugins: { 
-            legend: { display: false } 
-          },
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '60%',
-          animation: {
-            animateRotate: true,
-            animateScale: true,
-            duration: 800
-          }
-        } 
-      });
-      
-      // Update percentage displays
+      moodChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Bullish','Bearish'], datasets: [{ data: [bull, bear], backgroundColor: ['#1f9d57','#d64545'], borderWidth: 0 }] }, options: { plugins: { legend: { display: false } } } });
       document.getElementById('bullPct').textContent = `${bull}%`;
       document.getElementById('bearPct').textContent = `${bear}%`;
-      
-      // Reset percentage text styles to original
-      const bullElement = document.getElementById('bullPct');
-      const bearElement = document.getElementById('bearPct');
-      
-      // Reset all styles to original
-      bullElement.style.fontSize = '14px';
-      bearElement.style.fontSize = '14px';
-      bullElement.style.fontWeight = 'normal';
-      bearElement.style.fontWeight = 'normal';
-      bullElement.style.textShadow = 'none';
-      bearElement.style.textShadow = 'none';
-      bullElement.style.opacity = '1';
-      bearElement.style.opacity = '1';
-      
-      } catch (error) {
-        console.error('Mood chart update error:', error);
-        // Fallback display
-        document.getElementById('bullPct').textContent = '50%';
-        document.getElementById('bearPct').textContent = '50%';
-      }
-    }
-
-    function updatePredictionSummary(summary) {
-      document.getElementById('predictionPeriod').textContent = summary.period;
-      
-      const changeElement = document.getElementById('expectedChange');
-      const changePercent = summary.changePercent;
-      const changeText = `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%`;
-      
-      // Add visual indicators for prediction strength
-      const isStrongPrediction = Math.abs(changePercent) > 5;
-      const isVeryStrongPrediction = Math.abs(changePercent) > 15;
-      
-      let changeClass = changePercent >= 0 ? 'bull' : 'bear';
-      if (isVeryStrongPrediction) {
-        changeClass += ' very-strong';
-      } else if (isStrongPrediction) {
-        changeClass += ' strong';
-      }
-      
-      changeElement.innerHTML = `<span class="${changeClass}">${changeText}</span>`;
-      
-      // Update confidence with ML model info
-      const confidenceElement = document.getElementById('predictionConfidence');
-      let confidenceText = `${summary.confidence}%`;
-      if (summary.model) {
-        confidenceText += ` (${summary.model.toUpperCase()})`;
-      }
-      if (summary.accuracy) {
-        confidenceText += ` • ${Math.round(summary.accuracy * 100)}% accuracy`;
-      }
-      confidenceElement.textContent = confidenceText;
-      
-      // Update target price with visual styling
-      const targetPriceElement = document.getElementById('targetPrice');
-      targetPriceElement.textContent = formatCurrency(summary.targetPrice);
-      
-      // Add visual styling based on prediction strength
-      if (isVeryStrongPrediction) {
-        targetPriceElement.style.fontWeight = '900';
-        targetPriceElement.style.fontSize = '18px';
-        targetPriceElement.style.textShadow = changePercent >= 0 ? '0 0 8px rgba(0, 255, 136, 0.3)' : '0 0 8px rgba(255, 68, 68, 0.3)';
-      } else if (isStrongPrediction) {
-        targetPriceElement.style.fontWeight = 'bold';
-        targetPriceElement.style.fontSize = '16px';
-        targetPriceElement.style.textShadow = 'none';
-      } else {
-        targetPriceElement.style.fontWeight = 'normal';
-        targetPriceElement.style.fontSize = '14px';
-        targetPriceElement.style.textShadow = 'none';
-      }
     }
 
     function fillKpis(quote) {
@@ -2366,53 +865,202 @@
       document.getElementById('kpiLow').textContent = formatCurrency(quote.dayLow, quote.currency);
     }
 
-    async function testAlphaVantage(symbol) {
+    async function fetchAllProviders(symbol) {
+      const providers = ['finnhub', 'polygon', 'iex', 'alpha_vantage', 'twelve_data', 'yahoo'];
+      const results = {};
+      
+      for (const provider of providers) {
+        try {
+          const res = await fetch(`/api/quote?symbol=${encodeURIComponent(symbol)}&provider=${provider}`);
+          if (res.ok) {
+            const data = await res.json();
+            results[provider] = {
+              price: data.price,
+              change: data.change,
+              timestamp: data.lastUpdate || new Date().toISOString(),
+              quality: data.dataQuality || 'unknown'
+            };
+          }
+        } catch (e) {
+          results[provider] = { error: e.message };
+        }
+      }
+      return results;
+    }
+
+    async function testAllProviders(symbol) {
       const comp = document.getElementById('dataComparison');
-      comp.innerHTML = '<div>Testing Alpha Vantage...</div>';
+      comp.innerHTML = '<div>Testing all providers...</div>';
       
       try {
-        const data = await fetchAlphaVantageQuote(symbol);
-        const time = new Date(data.asOfISO).toLocaleTimeString();
-        const quality = data.dataQuality === 'real-time' ? '🟢' : '🟡';
+        const results = await fetchAllProviders(symbol);
+        let html = '<div style="margin-bottom:10px;"><strong>Provider Comparison:</strong></div>';
         
-        let html = `
-          <div style="margin-bottom:10px;"><strong>Alpha Vantage Data:</strong></div>
-          <div style="margin-bottom:5px;">Price: <strong>$${data.price?.toFixed(2)}</strong> ${quality}</div>
-          <div style="margin-bottom:5px;">Change: <strong>${data.change >= 0 ? '+' : ''}${data.change?.toFixed(2)} (${data.changePercent >= 0 ? '+' : ''}${data.changePercent?.toFixed(2)}%)</strong></div>
-          <div style="margin-bottom:5px;">Volume: <strong>${formatNumber(data.volume)}</strong></div>
-          <div style="margin-bottom:5px;">Time: <strong>${time}</strong></div>
-          <div style="margin-bottom:5px;">Quality: <strong>${data.dataQuality}</strong></div>
-          
+        for (const [provider, data] of Object.entries(results)) {
+          if (data.error) {
+            html += `<div style="margin-bottom:5px; color:#999;">${provider.toUpperCase()}: <span style="color:#e74c3c;">Failed</span></div>`;
+          } else {
+            const time = new Date(data.timestamp).toLocaleTimeString();
+            const quality = data.quality === 'real-time' ? '🟢' : data.quality === 'delayed' ? '🟡' : '⚪';
+            html += `<div style="margin-bottom:5px;">${provider.toUpperCase()}: <strong>$${data.price?.toFixed(2)}</strong> ${quality} (${time})</div>`;
+          }
+        }
+        
+        html += `
           <div style="margin-top:10px; font-size:11px; color:#999; border-top:1px solid #eee; padding-top:8px;">
-            <div><strong>Alpha Vantage Features:</strong></div>
-            <div>• Real-time stock quotes</div>
-            <div>• 20+ years historical data</div>
-            <div>• Professional technical indicators</div>
-            <div>• Global market coverage</div>
-            <div>• Institutional-grade data</div>
+            <div><strong>Why prices differ:</strong></div>
+            <div>• Different data sources have different update frequencies</div>
+            <div>• Some show pre-market, others regular market</div>
+            <div>• Real-time vs delayed data (15-20 min delay)</div>
+            <div>• Different consolidation rules</div>
+            <div>• Google may use a different primary source</div>
           </div>
         `;
         
         comp.innerHTML = html;
       } catch (e) {
-        comp.innerHTML = `<div style="color:#e74c3c;">Error testing Alpha Vantage: ${e.message}</div>`;
+        comp.innerHTML = `<div style="color:#e74c3c;">Error testing providers: ${e.message}</div>`;
       }
+    }
+
+    async function loadAlphaVantageData(symbol) {
+      const alphaData = document.getElementById('alphaVantageData');
+      const loadBtn = document.getElementById('loadAlphaVantageBtn');
+      
+      loadBtn.textContent = 'Loading...';
+      loadBtn.disabled = true;
+      alphaData.style.display = 'block';
+      
+      try {
+        // Load technical indicators
+        const indicators = ['RSI', 'MACD', 'BBANDS', 'SMA', 'EMA', 'STOCH'];
+        const indicatorPromises = indicators.map(async (indicator) => {
+          try {
+            const res = await fetch(`/api/alpha-vantage/technical/${indicator}?symbol=${encodeURIComponent(symbol)}&time_period=20`);
+            if (res.ok) {
+              const data = await res.json();
+              const latest = Object.keys(data)[0];
+              return { indicator, value: data[latest], date: latest };
+            }
+          } catch (e) {
+            console.log(`Failed to load ${indicator}:`, e.message);
+          }
+          return null;
+        });
+        
+        const indicatorResults = await Promise.all(indicatorPromises);
+        const validIndicators = indicatorResults.filter(r => r !== null);
+        
+        // Display technical indicators
+        const indicatorsGrid = document.getElementById('indicatorsGrid');
+        indicatorsGrid.innerHTML = '';
+        
+        validIndicators.forEach(ind => {
+          const div = document.createElement('div');
+          div.className = 'info';
+          div.innerHTML = `
+            <div class="label">${ind.indicator}</div>
+            <div class="value">${formatIndicatorValue(ind.indicator, ind.value)}</div>
+          `;
+          indicatorsGrid.appendChild(div);
+        });
+        
+        // Load company overview
+        try {
+          const overviewRes = await fetch(`/api/alpha-vantage/overview?symbol=${encodeURIComponent(symbol)}`);
+          if (overviewRes.ok) {
+            const overview = await overviewRes.json();
+            displayCompanyOverview(overview);
+          }
+        } catch (e) {
+          console.log('Failed to load company overview:', e.message);
+        }
+        
+        loadBtn.textContent = 'Refresh Alpha Vantage Data';
+        loadBtn.disabled = false;
+        
+      } catch (e) {
+        loadBtn.textContent = 'Load Alpha Vantage Data';
+        loadBtn.disabled = false;
+        console.error('Error loading Alpha Vantage data:', e);
+      }
+    }
+
+    function formatIndicatorValue(indicator, value) {
+      if (!value) return '-';
+      
+      switch(indicator) {
+        case 'RSI':
+          const rsi = parseFloat(value.RSI);
+          return rsi ? `${rsi.toFixed(1)} ${rsi > 70 ? '🔴' : rsi < 30 ? '🟢' : '🟡'}` : '-';
+        case 'MACD':
+          const macd = parseFloat(value.MACD);
+          const signal = parseFloat(value.MACD_Signal);
+          return macd ? `${macd.toFixed(3)} / ${signal.toFixed(3)}` : '-';
+        case 'BBANDS':
+          const upper = parseFloat(value.Real_Upper_Band);
+          const middle = parseFloat(value.Real_Middle_Band);
+          const lower = parseFloat(value.Real_Lower_Band);
+          return upper ? `${upper.toFixed(2)} / ${middle.toFixed(2)} / ${lower.toFixed(2)}` : '-';
+        case 'SMA':
+        case 'EMA':
+          const sma = parseFloat(value.SMA || value.EMA);
+          return sma ? sma.toFixed(2) : '-';
+        case 'STOCH':
+          const k = parseFloat(value.SlowK);
+          const d = parseFloat(value.SlowD);
+          return k ? `${k.toFixed(1)} / ${d.toFixed(1)}` : '-';
+        default:
+          return JSON.stringify(value).substring(0, 20) + '...';
+      }
+    }
+
+    function displayCompanyOverview(overview) {
+      const overviewGrid = document.getElementById('overviewGrid');
+      overviewGrid.innerHTML = '';
+      
+      const overviewData = [
+        { label: 'Sector', value: overview.sector || '-' },
+        { label: 'Industry', value: overview.industry || '-' },
+        { label: 'Market Cap', value: formatMcap(overview.marketCap) },
+        { label: 'P/E Ratio', value: overview.pe ? overview.pe.toFixed(2) : '-' },
+        { label: 'PEG Ratio', value: overview.peg ? overview.peg.toFixed(2) : '-' },
+        { label: 'EPS', value: overview.eps ? overview.eps.toFixed(2) : '-' },
+        { label: 'Dividend Yield', value: overview.dividendYield ? `${(overview.dividendYield * 100).toFixed(2)}%` : '-' },
+        { label: 'Beta', value: overview.beta ? overview.beta.toFixed(2) : '-' },
+        { label: '52W High', value: formatCurrency(overview.high52Week) },
+        { label: '52W Low', value: formatCurrency(overview.low52Week) },
+        { label: '50D MA', value: formatCurrency(overview.movingAverage50) },
+        { label: '200D MA', value: formatCurrency(overview.movingAverage200) },
+        { label: 'Target Price', value: formatCurrency(overview.analystTargetPrice) },
+        { label: 'Rating', value: overview.analystRating || '-' }
+      ];
+      
+      overviewData.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'info';
+        div.innerHTML = `
+          <div class="label">${item.label}</div>
+          <div class="value">${item.value}</div>
+        `;
+        overviewGrid.appendChild(div);
+      });
     }
 
     function updateDataComparison(symbol, currentQuote) {
       const comp = document.getElementById('dataComparison');
       comp.innerHTML = `
-        <div style="margin-bottom:8px;"><strong>Alpha Vantage Data</strong></div>
+        <div style="margin-bottom:8px;"><strong>Current: ${currentQuote.provider?.toUpperCase() || 'UNKNOWN'}</strong></div>
         <div style="margin-bottom:8px;">Price: <strong>$${currentQuote.price?.toFixed(2)}</strong></div>
-        <div style="margin-bottom:8px;">Time: ${new Date(currentQuote.asOfISO || Date.now()).toLocaleTimeString()}</div>
-        <div style="margin-bottom:8px;">Quality: <strong>${currentQuote.dataQuality || 'real-time'}</strong></div>
+        <div style="margin-bottom:8px;">Time: ${new Date(currentQuote.lastUpdate || Date.now()).toLocaleTimeString()}</div>
+        <div style="margin-bottom:8px;">Quality: ${currentQuote.dataQuality || 'unknown'}</div>
         <div style="margin-bottom:8px;">Session: ${currentQuote.session || 'REGULAR'}</div>
         <div style="font-size:11px; color:#999;">
-          <div><strong>Alpha Vantage Benefits:</strong></div>
-          <div>• Real-time market data</div>
-          <div>• Professional accuracy</div>
-          <div>• 20+ years history</div>
-          <div>• Institutional grade</div>
+          <div>Why prices differ:</div>
+          <div>• Different data sources</div>
+          <div>• Different timestamps</div>
+          <div>• Pre/post market vs regular</div>
+          <div>• Real-time vs delayed</div>
         </div>
       `;
     }
@@ -2462,29 +1110,21 @@
       return nameMatch || null;
     }
 
-    /* ===== MAIN ANALYSIS FUNCTION ===== */
-    // Main function that orchestrates the entire stock analysis process
     async function analyze(symbolOrName) {
       const query = (symbolOrName || document.getElementById('stockInput').value).trim();
-        if (!query) { 
-            alert('Enter a symbol or company name'); 
-            return; 
-        }
+      if (!query) { alert('Enter a symbol or company name'); return; }
 
-        /* ===== SYMBOL RESOLUTION ===== */
-        
-        // Prefer local database resolution first (faster)
+      // Prefer local resolution first
       let resolved = findLocalByQuery(query);
       let symbol = resolved?.s || query.toUpperCase();
       let exchangeName = resolved?.e || null;
       let nameOverride = resolved?.n || null;
 
-        // If query doesn't look like a stock symbol, use API search
+      // If still not clearly a symbol, use API search
       if (!/^[A-Z.]{1,6}$/.test(symbol)) {
         try {
           const results = await resolveSymbolFromApi(query);
           if (results.length) {
-                    // Prefer NASDAQ stocks, fallback to first result
             const preferred = results.find(q => q.exchDisp === 'NASDAQ' || q.exchange === 'NMS') || results[0];
             symbol = preferred.symbol.toUpperCase();
             exchangeName = preferred.exchDisp || preferred.exchange || exchangeName;
@@ -2493,54 +1133,49 @@
         } catch {}
       }
 
-        /* ===== DATA FETCHING ===== */
-        
-        // Store current analysis state
       currentSymbol = symbol;
       currentExchange = exchangeName;
 
-        // Update UI to show current timeframe
       document.getElementById('histTitle').textContent = `Historical Price (${document.querySelector('.tf.active').textContent})`;
 
-        // Fetch real-time quote and historical data in parallel
       const [quote, history] = await Promise.all([
-            safeFetchLiveQuote(symbol),        // Real-time stock quote
-            safeFetchStockHistory(symbol, selectedRange) // Historical price data
+        safeFetchLiveQuote(symbol),
+        safeFetchStockHistory(symbol, selectedRange)
       ]);
 
-        // Apply any name/exchange overrides from search results
       if (nameOverride) quote.name = nameOverride;
       if (exchangeName && quote.exchangeName === '—') quote.exchangeName = exchangeName;
 
-        // Store current data for investment recommendations
-        currentQuote = quote;
-        currentHistory = history;
+      fillKpis(quote);
+      fillInfo(quote);
 
-        /* ===== UI UPDATES ===== */
-        
-        // Update all UI components with fetched data
-        fillKpis(quote);              // Update sidebar KPIs
-        fillInfo(quote);              // Update stock information cards
+      drawPriceChart(history);
 
-        // Render charts with new data
-        drawPriceChart(history);      // Historical price chart
+      // Try ML service first
+      let pred, data;
+      try {
+        const closes = history.map(d => d.price);
+        const mlRes = await fetch('/api/ml/predict', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol, days: selectedPredictionDays, closes }) });
+        if (mlRes.ok) {
+          const ml = await mlRes.json();
+          const start = new Date();
+          data = Array.from({ length: Math.min(selectedPredictionDays, ml.predictions?.length || 0) }, (_, i) => ({ date: new Date(start.getTime() + (i+1)*86400000), price: ml.predictions[i] }));
+          // Fallback if ML predictions empty
+          if (!data.length) ({ pred, data } = generatePredictionPath(quote, history));
+          else {
+            const direction = (data[data.length-1].price >= quote.price) ? 'bullish' : 'bearish';
+            pred = { direction, confidence: 70, bullishRatio: direction==='bullish'?0.6:0.4 };
+          }
+        } else {
+          ({ pred, data } = generatePredictionPath(quote, history));
+        }
+      } catch { ({ pred, data } = generatePredictionPath(quote, history)); }
+      drawPredictionChart(data, pred);
+      updateMoodChart(pred);
 
-        // Generate and display predictions using StockSeer ML API
-        const { pred, data, summary } = await generateMLPredictionPath(quote, history, selectedPredictionDays);
-        drawPredictionChart(data, summary);  // Prediction chart
-        updateMoodChart(pred);               // Market mood doughnut chart
-        updatePredictionSummary(summary);    // Prediction summary cards
-
-      // Update prediction title
-      const predictionTitle = document.getElementById('predictionTitle');
-      const timeframeLabels = { 1: '1-Day', 7: '1-Week', 30: '30-Day' };
-      predictionTitle.textContent = `${timeframeLabels[selectedPredictionDays]} Prediction`;
-
-      document.getElementById('predictionText').innerHTML = `${pred.direction === 'bullish' ? '<span class="bull">Bullish</span>' : '<span class="bear">Bearish</span>'} outlook next ${summary.period} • Confidence ${pred.confidence}%`;
+      document.getElementById('predictionText').innerHTML = `${pred.direction === 'bullish' ? '<span class="bull">Bullish</span>' : '<span class="bear">Bearish</span>'} outlook next 30 days • Confidence ${pred.confidence}%`;
       document.getElementById('results').style.display = 'block';
-
-      // Generate initial investment recommendation (default to day trading)
-      generateInvestmentRecommendation('day');
+      document.getElementById('alphaVantageData').style.display = 'block';
 
       startLiveUpdates();
     }
@@ -2556,385 +1191,21 @@
       }, 30000);
     }
 
-    // Investment guidance toggle functionality
-    function toggleInvestmentGuide(strategy) {
-      const dayTradingBtn = document.getElementById('dayTradingBtn');
-      const longTermBtn = document.getElementById('longTermBtn');
-      
-      if (strategy === 'day') {
-        dayTradingBtn.style.background = '#5b7bd5';
-        longTermBtn.style.background = '#6b7a90';
-      } else {
-        dayTradingBtn.style.background = '#6b7a90';
-        longTermBtn.style.background = '#5b7bd5';
-      }
-      
-      // Update recommendation if stock is analyzed
-      if (currentSymbol && currentQuote && currentHistory) {
-        generateInvestmentRecommendation(strategy);
-      }
-    }
-
-    // Generate comprehensive investment recommendation
-    function generateInvestmentRecommendation(strategy) {
-      if (!currentQuote || !currentHistory) return;
-      
-      const prices = currentHistory.map(d => d.price);
-      const currentPrice = currentQuote.price;
-      const rsi = calculateRSI(prices);
-      const macd = calculateMACD(prices);
-      const sma20 = calculateSMA(prices, 20);
-      const sma50 = calculateSMA(prices, 50);
-      const bb = calculateBollingerBands(prices);
-      const stoch = calculateStochastic(prices);
-      const williamsR = calculateWilliamsR(prices);
-      const volume = currentQuote.volume;
-      const pe = currentQuote.pe;
-      const marketCap = currentQuote.marketCap;
-      const volatility = calculateVolatility(prices);
-      
-      let bullishSignals = 0;
-      let bearishSignals = 0;
-      let technicalSignals = [];
-      let riskFactors = [];
-      let guidelines = [];
-      
-      if (strategy === 'day') {
-        // Day Trading Analysis
-        technicalSignals.push('<strong>📈 Day Trading Signals:</strong>');
-        
-        // RSI Analysis
-        if (rsi < 30) {
-          bullishSignals += 2;
-          technicalSignals.push('✅ RSI oversold (' + rsi.toFixed(1) + ') - Strong bounce opportunity');
-        } else if (rsi > 70) {
-          bearishSignals += 2;
-          technicalSignals.push('❌ RSI overbought (' + rsi.toFixed(1) + ') - Sell signal');
-        } else if (rsi < 40) {
-          bullishSignals += 1;
-          technicalSignals.push('🟡 RSI weak oversold (' + rsi.toFixed(1) + ')');
-        } else if (rsi > 60) {
-          bearishSignals += 1;
-          technicalSignals.push('🟡 RSI weak overbought (' + rsi.toFixed(1) + ')');
-        } else {
-          technicalSignals.push('⚪ RSI neutral (' + rsi.toFixed(1) + ')');
-        }
-        
-        // Bollinger Bands
-        if (currentPrice < bb.lower) {
-          bullishSignals += 2;
-          technicalSignals.push('✅ Price at lower Bollinger Band - Oversold');
-        } else if (currentPrice > bb.upper) {
-          bearishSignals += 2;
-          technicalSignals.push('❌ Price at upper Bollinger Band - Overbought');
-        } else if (currentPrice > bb.middle) {
-          bullishSignals += 0.5;
-          technicalSignals.push('🟡 Price above middle Bollinger Band');
-        } else {
-          bearishSignals += 0.5;
-          technicalSignals.push('🟡 Price below middle Bollinger Band');
-        }
-        
-        // MACD
-        if (macd.macd > macd.signal) {
-          bullishSignals += 1;
-          technicalSignals.push('✅ MACD bullish crossover');
-        } else {
-          bearishSignals += 1;
-          technicalSignals.push('❌ MACD bearish crossover');
-        }
-        
-        // Stochastic
-        if (stoch.k < 20 && stoch.d < 20) {
-          bullishSignals += 1;
-          technicalSignals.push('✅ Stochastic oversold (' + stoch.k.toFixed(1) + ')');
-        } else if (stoch.k > 80 && stoch.d > 80) {
-          bearishSignals += 1;
-          technicalSignals.push('❌ Stochastic overbought (' + stoch.k.toFixed(1) + ')');
-        } else {
-          technicalSignals.push('⚪ Stochastic neutral (' + stoch.k.toFixed(1) + ')');
-        }
-        
-        // Volume Analysis
-        if (volume > 50_000_000) {
-          technicalSignals.push('📊 High volume - Good liquidity for day trading');
-        } else if (volume < 10_000_000) {
-          technicalSignals.push('⚠️ Low volume - Higher slippage risk');
-        }
-        
-        // Risk Assessment for Day Trading
-        riskFactors.push('<strong>⚠️ Day Trading Risks:</strong>');
-        if (volatility > 0.05) {
-          riskFactors.push('🔴 High volatility (' + (volatility * 100).toFixed(1) + '%) - Increased risk');
-        } else if (volatility < 0.02) {
-          riskFactors.push('🟢 Low volatility (' + (volatility * 100).toFixed(1) + '%) - Lower risk');
-        } else {
-          riskFactors.push('🟡 Moderate volatility (' + (volatility * 100).toFixed(1) + '%)');
-        }
-        
-        if (marketCap < 1e9) {
-          riskFactors.push('🔴 Small cap - Higher volatility risk');
-        } else if (marketCap > 1e12) {
-          riskFactors.push('🟢 Large cap - More stable');
-        }
-        
-        // Guidelines
-        guidelines.push('<strong>📋 Day Trading Guidelines:</strong>');
-        guidelines.push('• Entry: Wait for RSI < 30 or price at lower Bollinger Band');
-        guidelines.push('• Exit: Take profit at RSI > 70 or upper Bollinger Band');
-        guidelines.push('• Stop Loss: Set 2-3% below entry price');
-        guidelines.push('• Position Size: Max 5-10% of portfolio');
-        guidelines.push('• Best Times: First 30 min and last 30 min of trading day');
-        
-      } else {
-        // Long-term Analysis
-        technicalSignals.push('<strong>📊 Long-term Signals:</strong>');
-        
-        // Moving Averages
-        if (currentPrice > sma20 && sma20 > sma50) {
-          bullishSignals += 2;
-          technicalSignals.push('✅ Strong uptrend (price > SMA20 > SMA50)');
-        } else if (currentPrice < sma20 && sma20 < sma50) {
-          bearishSignals += 2;
-          technicalSignals.push('❌ Strong downtrend');
-        } else if (currentPrice > sma20) {
-          bullishSignals += 1;
-          technicalSignals.push('🟡 Price above short-term MA');
-        } else {
-          bearishSignals += 1;
-          technicalSignals.push('🟡 Price below short-term MA');
-        }
-        
-        // RSI for long-term
-        if (rsi >= 40 && rsi <= 60) {
-          bullishSignals += 1;
-          technicalSignals.push('✅ RSI in healthy range (' + rsi.toFixed(1) + ')');
-        } else if (rsi > 75) {
-          bearishSignals += 1;
-          technicalSignals.push('❌ RSI overbought for long-term (' + rsi.toFixed(1) + ')');
-        } else if (rsi < 25) {
-          bullishSignals += 1;
-          technicalSignals.push('✅ RSI oversold - potential buying opportunity');
-        } else {
-          technicalSignals.push('⚪ RSI neutral (' + rsi.toFixed(1) + ')');
-        }
-        
-        // P/E Ratio Analysis
-        if (pe && pe < 20) {
-          bullishSignals += 1;
-          technicalSignals.push('✅ Reasonable P/E ratio (' + pe.toFixed(1) + ')');
-        } else if (pe && pe > 35) {
-          bearishSignals += 1;
-          technicalSignals.push('❌ High P/E ratio (' + pe.toFixed(1) + ') - Overvalued');
-        } else if (pe) {
-          technicalSignals.push('⚪ Moderate P/E ratio (' + pe.toFixed(1) + ')');
-        }
-        
-        // Market Cap Analysis
-        if (marketCap > 1e12) {
-          technicalSignals.push('🏢 Large cap ($' + formatMcap(marketCap) + ') - Stable for long-term');
-        } else if (marketCap < 1e9) {
-          technicalSignals.push('⚠️ Small cap ($' + formatMcap(marketCap) + ') - Higher risk');
-        } else {
-          technicalSignals.push('🏢 Mid cap ($' + formatMcap(marketCap) + ') - Moderate risk');
-        }
-        
-        // Risk Assessment for Long-term
-        riskFactors.push('<strong>⚠️ Long-term Risks:</strong>');
-        if (volatility > 0.04) {
-          riskFactors.push('🔴 High volatility - Expect significant price swings');
-        } else if (volatility < 0.015) {
-          riskFactors.push('🟢 Low volatility - Stable price movement');
-        } else {
-          riskFactors.push('🟡 Moderate volatility - Normal market behavior');
-        }
-        
-        if (pe && pe > 30) {
-          riskFactors.push('🔴 High valuation risk - P/E ratio elevated');
-        }
-        
-        if (marketCap < 1e9) {
-          riskFactors.push('🔴 Small cap risk - Higher volatility and liquidity risk');
-        }
-        
-        // Guidelines
-        guidelines.push('<strong>📋 Long-term Guidelines:</strong>');
-        guidelines.push('• Buy: Price above both SMA20 and SMA50, RSI 40-60');
-        guidelines.push('• Hold: Maintain position if trend continues');
-        guidelines.push('• Sell: Price breaks below SMA50, RSI > 75');
-        guidelines.push('• Diversification: Max 20-30% in single position');
-        guidelines.push('• Rebalancing: Review quarterly, adjust annually');
-      }
-      
-      // Calculate final recommendation
-      const totalSignals = bullishSignals + bearishSignals;
-      const bullishRatio = totalSignals > 0 ? bullishSignals / totalSignals : 0.5;
-      const confidence = Math.round(Math.min(Math.abs(bullishRatio - 0.5) * 2, 0.95) * 100);
-      
-      let recommendation = '';
-      let recommendationColor = '';
-      
-      if (bullishRatio > 0.6) {
-        recommendation = '🟢 BUY';
-        recommendationColor = '#1f9d57';
-      } else if (bullishRatio < 0.4) {
-        recommendation = '🔴 SELL';
-        recommendationColor = '#d64545';
-      } else {
-        recommendation = '🟡 HOLD';
-        recommendationColor = '#f39c12';
-      }
-      
-      // Update the main recommendation display
-      document.getElementById('recommendationText').innerHTML = 
-        `<span style="color: ${recommendationColor}; font-size: 24px;">${recommendation}</span>`;
-      
-      document.getElementById('confidenceLevel').textContent = 
-        `Confidence: ${confidence}% | Strategy: ${strategy === 'day' ? 'Day Trading' : 'Long-term'}`;
-      
-      // Update technical signals
-      document.getElementById('technicalSignals').innerHTML = 
-        technicalSignals.map(signal => `<div style="margin-bottom: 4px;">${signal}</div>`).join('');
-      
-      // Update risk assessment
-      document.getElementById('riskAssessment').innerHTML = 
-        riskFactors.map(risk => `<div style="margin-bottom: 4px;">${risk}</div>`).join('');
-      
-      // Update guidelines
-      document.getElementById('guidelinesContent').innerHTML = 
-        guidelines.map(guideline => `<div style="margin-bottom: 4px;">${guideline}</div>`).join('');
-      
-      // Show the investment analysis section
-      document.getElementById('investmentAnalysis').style.display = 'block';
-    }
-
-    async function loadAlphaVantageIndicators() {
-      if (!currentSymbol) {
-        alert('Please analyze a stock first');
-        return;
-      }
-
-      const indicatorsContent = document.getElementById('indicatorsContent');
-      const loadBtn = document.getElementById('loadIndicatorsBtn');
-      
-      loadBtn.textContent = 'Loading...';
-      loadBtn.disabled = true;
-      
-      try {
-        const indicators = await fetchAlphaVantageIndicators(currentSymbol);
-        
-        if (indicators) {
-          let html = '<div style="margin-bottom: 10px;"><strong>Professional Technical Analysis:</strong></div>';
-          
-          // RSI Analysis
-          if (indicators.rsi) {
-            const rsiEntries = Object.entries(indicators.rsi);
-            const latestRSI = rsiEntries[0];
-            if (latestRSI) {
-              const rsiValue = parseFloat(latestRSI[1]['RSI']);
-              const rsiStatus = rsiValue < 30 ? '🔴 Oversold' : rsiValue > 70 ? '🟢 Overbought' : '⚪ Neutral';
-              html += `<div style="margin-bottom: 4px;">📈 RSI: <strong>${rsiValue.toFixed(2)}</strong> ${rsiStatus}</div>`;
-            }
-          }
-          
-          // MACD Analysis
-          if (indicators.macd) {
-            const macdEntries = Object.entries(indicators.macd);
-            const latestMACD = macdEntries[0];
-            if (latestMACD) {
-              const macdValue = parseFloat(latestMACD[1]['MACD']);
-              const signalValue = parseFloat(latestMACD[1]['MACD_Signal']);
-              const histogramValue = parseFloat(latestMACD[1]['MACD_Hist']);
-              const macdStatus = macdValue > signalValue ? '🟢 Bullish' : '🔴 Bearish';
-              html += `<div style="margin-bottom: 4px;">📊 MACD: <strong>${macdValue.toFixed(4)}</strong> ${macdStatus}</div>`;
-              html += `<div style="margin-bottom: 4px;">📈 Signal: <strong>${signalValue.toFixed(4)}</strong></div>`;
-              html += `<div style="margin-bottom: 4px;">📉 Histogram: <strong>${histogramValue.toFixed(4)}</strong></div>`;
-            }
-          }
-          
-          // SMA Analysis
-          if (indicators.sma20 && indicators.sma50) {
-            const sma20Entries = Object.entries(indicators.sma20);
-            const sma50Entries = Object.entries(indicators.sma50);
-            const latestSMA20 = sma20Entries[0];
-            const latestSMA50 = sma50Entries[0];
-            
-            if (latestSMA20 && latestSMA50) {
-              const sma20Value = parseFloat(latestSMA20[1]['SMA']);
-              const sma50Value = parseFloat(latestSMA50[1]['SMA']);
-              const trendStatus = sma20Value > sma50Value ? '🟢 Uptrend' : '🔴 Downtrend';
-              html += `<div style="margin-bottom: 4px;">📈 SMA 20: <strong>$${sma20Value.toFixed(2)}</strong></div>`;
-              html += `<div style="margin-bottom: 4px;">📈 SMA 50: <strong>$${sma50Value.toFixed(2)}</strong></div>`;
-              html += `<div style="margin-bottom: 4px;">📊 Trend: <strong>${trendStatus}</strong></div>`;
-            }
-          }
-          
-          html += '<div style="margin-top: 10px; font-size: 11px; color: #6b7a90;">Data provided by Alpha Vantage API</div>';
-          indicatorsContent.innerHTML = html;
-        } else {
-          indicatorsContent.innerHTML = '<div style="color: #d64545;">Failed to load Alpha Vantage indicators. Using calculated values instead.</div>';
-        }
-      } catch (error) {
-        indicatorsContent.innerHTML = `<div style="color: #d64545;">Error loading indicators: ${error.message}</div>`;
-      } finally {
-        loadBtn.textContent = 'Load Alpha Vantage Indicators';
-        loadBtn.disabled = false;
-      }
-    }
-
-    /* ===== EVENT HANDLERS ===== */
-    
-    // Main analysis button - triggers stock analysis
+    // Events
     document.getElementById('analyzeBtn').addEventListener('click', () => analyze());
-    
-    // Stock input autocomplete - debounced to avoid excessive API calls
     document.getElementById('stockInput').addEventListener('input', debounce(updateSuggestions, 250));
-    
-    // Enter key support for stock input
-    document.getElementById('stockInput').addEventListener('keypress', (e) => { 
-        if (e.key === 'Enter') analyze(); 
-    });
-    
-    // Alpha Vantage API testing button
+    document.getElementById('stockInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') analyze(); });
     document.getElementById('testProvidersBtn').addEventListener('click', () => {
-        if (currentSymbol) testAlphaVantage(currentSymbol);
+      if (currentSymbol) testAllProviders(currentSymbol);
       else alert('Please analyze a stock first');
     });
-    
-    // Investment strategy toggle buttons
-    document.getElementById('dayTradingBtn').addEventListener('click', () => toggleInvestmentGuide('day'));
-    document.getElementById('longTermBtn').addEventListener('click', () => toggleInvestmentGuide('long'));
-    
-    // Alpha Vantage technical indicators loader
-    document.getElementById('loadIndicatorsBtn').addEventListener('click', loadAlphaVantageIndicators);
-    
-    // ML model selection handler
-    document.getElementById('modelSelect').addEventListener('change', (e) => {
-      selectedMLModel = e.target.value;
-      console.log('Selected ML model:', selectedMLModel);
-      
-      // Re-run prediction with new model if stock is already analyzed
-      if (currentSymbol && currentQuote && currentHistory) {
-        generateMLPredictionPath(currentQuote, currentHistory, selectedPredictionDays)
-          .then(({ pred, data, summary }) => {
-            drawPredictionChart(data, summary);
-            updateMoodChart(pred);
-            updatePredictionSummary(summary);
-            
-            // Update prediction text with new model info
-            const modelInfo = summary.model ? ` • ${summary.model.toUpperCase()}` : '';
-            const accuracyInfo = summary.accuracy ? ` • ${Math.round(summary.accuracy * 100)}% accuracy` : '';
-            document.getElementById('predictionText').innerHTML = `${pred.direction === 'bullish' ? '<span class="bull">Bullish</span>' : '<span class="bear">Bearish</span>'} outlook next ${summary.period} • Confidence ${pred.confidence}%${modelInfo}${accuracyInfo}`;
-          })
-          .catch(error => {
-            console.error('Error updating prediction with new model:', error);
-          });
-      }
+    document.getElementById('loadAlphaVantageBtn').addEventListener('click', () => {
+      if (currentSymbol) loadAlphaVantageData(currentSymbol);
+      else alert('Please analyze a stock first');
     });
-    
     // Historical timeframe buttons
-    document.querySelectorAll('.tf:not(.prediction-tf)').forEach(btn => btn.addEventListener('click', async (e) => {
-      document.querySelectorAll('.tf:not(.prediction-tf)').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.primary .tf').forEach(btn => btn.addEventListener('click', async (e) => {
+      document.querySelectorAll('.primary .tf').forEach(b => b.classList.remove('active'));
       e.currentTarget.classList.add('active');
       selectedRange = e.currentTarget.getAttribute('data-range');
       selectedDays = Number(e.currentTarget.getAttribute('data-days'));
@@ -2944,62 +1215,31 @@
           const history = await safeFetchStockHistory(currentSymbol, selectedRange);
           drawPriceChart(history);
           const q = await safeFetchLiveQuote(currentSymbol);
-          const { pred, data, summary } = await generateMLPredictionPath(q, history, selectedPredictionDays);
-          drawPredictionChart(data, summary);
-          updatePredictionSummary(summary);
+          const { pred, data } = generatePredictionPath(q, history);
+          drawPredictionChart(data, pred);
         } catch {}
       }
     }));
 
     // Prediction timeframe buttons
-    document.querySelectorAll('.prediction-tf').forEach(btn => btn.addEventListener('click', async (e) => {
-      document.querySelectorAll('.prediction-tf').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.chart-card .tf').forEach(btn => btn.addEventListener('click', async (e) => {
+      document.querySelectorAll('.chart-card .tf').forEach(b => b.classList.remove('active'));
       e.currentTarget.classList.add('active');
       selectedPredictionDays = Number(e.currentTarget.getAttribute('data-days'));
-      
-      if (currentSymbol && currentQuote && currentHistory) {
+      if (currentSymbol) {
         try {
-          const { pred, data, summary } = await generateMLPredictionPath(currentQuote, currentHistory, selectedPredictionDays);
-          drawPredictionChart(data, summary);
-          updatePredictionSummary(summary);
-          
-          // Update prediction title
-          const predictionTitle = document.getElementById('predictionTitle');
-          const timeframeLabels = { 1: '1-Day', 7: '1-Week', 30: '30-Day' };
-          predictionTitle.textContent = `${timeframeLabels[selectedPredictionDays]} Prediction`;
-          
-          // Update prediction text with ML model info
-          const modelInfo = summary.model ? ` • ${summary.model.toUpperCase()}` : '';
-          const accuracyInfo = summary.accuracy ? ` • ${Math.round(summary.accuracy * 100)}% accuracy` : '';
-          document.getElementById('predictionText').innerHTML = `${pred.direction === 'bullish' ? '<span class="bull">Bullish</span>' : '<span class="bear">Bearish</span>'} outlook next ${summary.period} • Confidence ${pred.confidence}%${modelInfo}${accuracyInfo}`;
+          const history = await safeFetchStockHistory(currentSymbol, selectedRange);
+          const q = await safeFetchLiveQuote(currentSymbol);
+          const { pred, data } = generatePredictionPath(q, history, selectedPredictionDays);
+          drawPredictionChart(data, pred);
         } catch {}
       }
     }));
 
-    /* ===== UTILITY FUNCTIONS ===== */
-    
-    // Debounce function to limit API calls during typing
-    function debounce(fn, wait) { 
-        let t; 
-        return (...args) => { 
-            clearTimeout(t); 
-            t = setTimeout(() => fn.apply(null, args), wait); 
-        }; 
-    }
+    function debounce(fn, wait) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), wait); }; }
 
-    /* ===== INITIALIZATION ===== */
-    
-    // Initialize stock suggestions datalist when page loads
-    window.addEventListener('DOMContentLoaded', () => {
-      populateInitialDatalist();
-      
-      // Initialize market mood chart with neutral values
-      updateMoodChart({ 
-        direction: 'neutral', 
-        bullishRatio: 0.5, 
-        confidence: 50 
-      });
-    });
+    // Initialize datalist on load
+    window.addEventListener('DOMContentLoaded', populateInitialDatalist);
     </script>
 </body>
 </html>

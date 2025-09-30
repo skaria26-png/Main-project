@@ -13,6 +13,7 @@ const FINNHUB_KEY = process.env.FINNHUB_API_KEY || '';
 const IEX_TOKEN = process.env.IEX_CLOUD_TOKEN || '';
 const ALPHA_VANTAGE_KEY = process.env.ALPHA_VANTAGE_KEY || '';
 const TWELVE_DATA_KEY = process.env.TWELVE_DATA_KEY || '';
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://127.0.0.1:8001';
 
 function ok(x) { return x && (x.status === 200 || x.ok); }
 
@@ -153,6 +154,110 @@ async function alphaVantageQuote(symbol) {
   };
 }
 
+async function alphaVantageTimeSeries(symbol, interval = 'daily') {
+  if (!ALPHA_VANTAGE_KEY) throw new Error('no alpha vantage');
+  let functionName, outputsize = 'compact';
+  
+  switch(interval) {
+    case 'intraday': functionName = 'TIME_SERIES_INTRADAY'; break;
+    case 'daily': functionName = 'TIME_SERIES_DAILY'; break;
+    case 'weekly': functionName = 'TIME_SERIES_WEEKLY'; break;
+    case 'monthly': functionName = 'TIME_SERIES_MONTHLY'; break;
+    default: functionName = 'TIME_SERIES_DAILY';
+  }
+  
+  let url = `https://www.alphavantage.co/query?function=${functionName}&symbol=${encodeURIComponent(symbol)}&apikey=${ALPHA_VANTAGE_KEY}&outputsize=${outputsize}`;
+  if (interval === 'intraday') {
+    url += '&interval=5min';
+  }
+  
+  const res = await fetch(url);
+  if (!ok(res)) throw new Error('alpha vantage time series bad');
+  const data = await res.json();
+  
+  let timeSeriesKey;
+  switch(interval) {
+    case 'intraday': timeSeriesKey = 'Time Series (5min)'; break;
+    case 'daily': timeSeriesKey = 'Time Series (Daily)'; break;
+    case 'weekly': timeSeriesKey = 'Weekly Time Series'; break;
+    case 'monthly': timeSeriesKey = 'Monthly Time Series'; break;
+  }
+  
+  const timeSeries = data[timeSeriesKey];
+  if (!timeSeries) throw new Error('alpha vantage time series empty');
+  
+  const out = [];
+  const entries = Object.entries(timeSeries).slice(0, 180); // Limit to 180 days
+  for (const [date, values] of entries) {
+    out.push({
+      date: new Date(date),
+      price: parseFloat(values['4. close']),
+      open: parseFloat(values['1. open']),
+      high: parseFloat(values['2. high']),
+      low: parseFloat(values['3. low']),
+      volume: parseInt(values['5. volume'])
+    });
+  }
+  return out.sort((a, b) => a.date - b.date);
+}
+
+async function alphaVantageTechnicalIndicator(symbol, indicator, interval = 'daily', timePeriod = 20) {
+  if (!ALPHA_VANTAGE_KEY) throw new Error('no alpha vantage');
+  
+  let url = `https://www.alphavantage.co/query?function=${indicator}&symbol=${encodeURIComponent(symbol)}&interval=${interval}&time_period=${timePeriod}&series_type=close&apikey=${ALPHA_VANTAGE_KEY}`;
+  
+  const res = await fetch(url);
+  if (!ok(res)) throw new Error('alpha vantage technical indicator bad');
+  const data = await res.json();
+  
+  // Different indicators have different response structures
+  let indicatorKey;
+  switch(indicator) {
+    case 'RSI': indicatorKey = 'Technical Analysis: RSI'; break;
+    case 'MACD': indicatorKey = 'Technical Analysis: MACD'; break;
+    case 'BBANDS': indicatorKey = 'Technical Analysis: BBANDS'; break;
+    case 'SMA': indicatorKey = 'Technical Analysis: SMA'; break;
+    case 'EMA': indicatorKey = 'Technical Analysis: EMA'; break;
+    case 'STOCH': indicatorKey = 'Technical Analysis: STOCH'; break;
+    default: indicatorKey = `Technical Analysis: ${indicator}`;
+  }
+  
+  const technicalData = data[indicatorKey];
+  if (!technicalData) throw new Error('alpha vantage technical indicator empty');
+  
+  return technicalData;
+}
+
+async function alphaVantageCompanyOverview(symbol) {
+  if (!ALPHA_VANTAGE_KEY) throw new Error('no alpha vantage');
+  const url = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${encodeURIComponent(symbol)}&apikey=${ALPHA_VANTAGE_KEY}`;
+  const res = await fetch(url);
+  if (!ok(res)) throw new Error('alpha vantage company overview bad');
+  const data = await res.json();
+  if (!data.Symbol) throw new Error('alpha vantage company overview empty');
+  
+  return {
+    symbol: data.Symbol,
+    name: data.Name,
+    description: data.Description,
+    sector: data.Sector,
+    industry: data.Industry,
+    marketCap: data.MarketCapitalization ? parseFloat(data.MarketCapitalization) : null,
+    pe: data.PERatio ? parseFloat(data.PERatio) : null,
+    peg: data.PEGRatio ? parseFloat(data.PEGRatio) : null,
+    eps: data.EPS ? parseFloat(data.EPS) : null,
+    dividendYield: data.DividendYield ? parseFloat(data.DividendYield) : null,
+    beta: data.Beta ? parseFloat(data.Beta) : null,
+    high52Week: data['52WeekHigh'] ? parseFloat(data['52WeekHigh']) : null,
+    low52Week: data['52WeekLow'] ? parseFloat(data['52WeekLow']) : null,
+    movingAverage50: data['50DayMovingAverage'] ? parseFloat(data['50DayMovingAverage']) : null,
+    movingAverage200: data['200DayMovingAverage'] ? parseFloat(data['200DayMovingAverage']) : null,
+    analystTargetPrice: data.AnalystTargetPrice ? parseFloat(data.AnalystTargetPrice) : null,
+    analystRating: data.AnalystRating,
+    lastUpdate: new Date().toISOString()
+  };
+}
+
 async function twelveDataQuote(symbol) {
   if (!TWELVE_DATA_KEY) throw new Error('no twelve data');
   const url = `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbol)}&apikey=${TWELVE_DATA_KEY}`;
@@ -243,7 +348,7 @@ async function yahooHistory(symbol, range) {
 }
 
 async function tryProvidersHistory(symbol, range, preferred) {
-  const order = ['finnhub','polygon','yahoo'];
+  const order = ['finnhub','polygon','alpha_vantage','yahoo'];
   if (preferred && order.includes(preferred)) {
     order.splice(order.indexOf(preferred),1);
     order.unshift(preferred);
@@ -252,6 +357,7 @@ async function tryProvidersHistory(symbol, range, preferred) {
     try {
       if (p === 'finnhub') return await finnhubHistory(symbol);
       if (p === 'polygon') return await polygonHistory(symbol);
+      if (p === 'alpha_vantage') return await alphaVantageTimeSeries(symbol, 'daily');
       if (p === 'yahoo') return await yahooHistory(symbol, range);
     } catch {}
   }
@@ -280,6 +386,80 @@ app.get('/api/history', async (req, res) => {
     res.json(h);
   } catch (e) {
     res.status(502).json({ error: 'providers_failed' });
+  }
+});
+
+// Alpha Vantage specific endpoints
+app.get('/api/alpha-vantage/timeseries', async (req, res) => {
+  const symbol = (req.query.symbol || '').toUpperCase();
+  const interval = req.query.interval || 'daily';
+  if (!symbol) return res.status(400).json({ error: 'symbol required' });
+  if (!ALPHA_VANTAGE_KEY) return res.status(503).json({ error: 'alpha_vantage_not_configured' });
+  
+  try {
+    const data = await alphaVantageTimeSeries(symbol, interval);
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: 'alpha_vantage_timeseries_failed', message: e.message });
+  }
+});
+
+// ML prediction proxy
+app.post('/api/ml/predict', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const url = `${ML_SERVICE_URL.replace(/\/$/, '')}/predict`;
+    const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    if (!ok(r)) return res.status(502).json({ error: 'ml_service_failed' });
+    const j = await r.json();
+    res.json(j);
+  } catch (e) {
+    res.status(502).json({ error: 'ml_proxy_error', message: e.message });
+  }
+});
+
+app.get('/api/alpha-vantage/technical/:indicator', async (req, res) => {
+  const symbol = (req.query.symbol || '').toUpperCase();
+  const indicator = req.params.indicator.toUpperCase();
+  const interval = req.query.interval || 'daily';
+  const timePeriod = parseInt(req.query.time_period) || 20;
+  
+  if (!symbol) return res.status(400).json({ error: 'symbol required' });
+  if (!ALPHA_VANTAGE_KEY) return res.status(503).json({ error: 'alpha_vantage_not_configured' });
+  
+  try {
+    const data = await alphaVantageTechnicalIndicator(symbol, indicator, interval, timePeriod);
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: 'alpha_vantage_technical_failed', message: e.message });
+  }
+});
+
+app.get('/api/alpha-vantage/overview', async (req, res) => {
+  const symbol = (req.query.symbol || '').toUpperCase();
+  if (!symbol) return res.status(400).json({ error: 'symbol required' });
+  if (!ALPHA_VANTAGE_KEY) return res.status(503).json({ error: 'alpha_vantage_not_configured' });
+  
+  try {
+    const data = await alphaVantageCompanyOverview(symbol);
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: 'alpha_vantage_overview_failed', message: e.message });
+  }
+});
+
+// Enhanced history endpoint with Alpha Vantage support
+app.get('/api/history/alpha-vantage', async (req, res) => {
+  const symbol = (req.query.symbol || '').toUpperCase();
+  const interval = req.query.interval || 'daily';
+  if (!symbol) return res.status(400).json({ error: 'symbol required' });
+  if (!ALPHA_VANTAGE_KEY) return res.status(503).json({ error: 'alpha_vantage_not_configured' });
+  
+  try {
+    const data = await alphaVantageTimeSeries(symbol, interval);
+    res.json(data);
+  } catch (e) {
+    res.status(502).json({ error: 'alpha_vantage_history_failed', message: e.message });
   }
 });
 
